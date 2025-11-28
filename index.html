@@ -2,27 +2,42 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>今天吃什麼？V3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>今天吃什麼？V3.1</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 莫蘭迪 V3 - 更清新的配色 */
+            /* 莫蘭迪 V3 */
             --bg: #F5F7F6;
             --card: #FFFFFF;
-            --primary: #7A9CA5;      /* 灰藍 */
-            --secondary: #A5B59C;    /* 抹茶綠 */
-            --accent: #D49A89;       /* 髒粉紅 */
+            --primary: #7A9CA5;
+            --secondary: #A5B59C;
+            --accent: #D49A89;
             --text: #555555;
             --shadow: 0 8px 30px rgba(122, 156, 165, 0.15);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body { margin: 0; padding: 0; font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            height: 100vh; /* 固定高度 */
+            height: -webkit-fill-available; /* 解決 Safari 100vh 問題 */
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+        }
 
-        /* === 頂部進度條 === */
-        .header { padding: 15px 20px; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+        /* === 頂部 === */
+        .header { 
+            padding: 15px 20px; z-index: 10; display: flex; 
+            justify-content: space-between; align-items: center; 
+            padding-top: max(15px, env(safe-area-inset-top)); /* 避開瀏海 */
+        }
         .app-logo { font-size: 18px; font-weight: bold; color: var(--primary); letter-spacing: 1px; }
         
         .wishlist-counter {
@@ -35,18 +50,26 @@
         /* === 主舞台 === */
         .main-stage {
             flex: 1; position: relative; width: 100%; max-width: 400px; margin: 0 auto;
-            display: flex; flex-direction: column; justify-content: center; padding: 10px 20px;
+            display: flex; flex-direction: column; justify-content: center; 
+            padding: 10px 20px;
+            padding-bottom: 0; /* 底部空間交給 controls 處理 */
         }
 
-        /* 瀏覽模式 - 卡片 */
-        .browse-mode { display: flex; flex-direction: column; height: 100%; }
+        /* 瀏覽模式 */
+        .browse-mode { 
+            display: flex; flex-direction: column; height: 100%; 
+            position: relative;
+        }
         
         .food-card {
             background: var(--card); border-radius: 24px; overflow: hidden;
-            box-shadow: var(--shadow); flex: 1; display: flex; flex-direction: column;
-            position: relative; animation: popIn 0.3s; margin-bottom: 20px;
+            box-shadow: var(--shadow); 
+            flex: 1; /* 佔滿剩餘空間 */
+            display: flex; flex-direction: column;
+            position: relative; animation: popIn 0.3s; 
+            margin-bottom: 20px; /* 與按鈕區的間距 */
         }
-        .food-img-box { height: 50%; position: relative; }
+        .food-img-box { height: 45%; position: relative; background: #eee; }
         .food-img { width: 100%; height: 100%; object-fit: cover; }
         .price-badge {
             position: absolute; bottom: 10px; right: 10px;
@@ -61,10 +84,14 @@
         .tag-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; }
         .info-tag { background: #EDF2F4; padding: 4px 10px; border-radius: 8px; font-size: 12px; color: #666; }
 
-        /* 底部按鈕 */
+        /* === 關鍵修正：底部按鈕區 === */
         .bottom-controls {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px 30px;
+            padding: 0 30px;
+            /* 這裡很重要：給予底部足夠的緩衝空間，避開 Safari 網址列 */
+            padding-bottom: max(30px, env(safe-area-inset-bottom)); 
+            width: 100%; max-width: 400px; margin: 0 auto;
+            position: relative; z-index: 20;
         }
         .big-btn {
             width: 65px; height: 65px; border-radius: 50%; border: none;
@@ -75,7 +102,7 @@
         .btn-pass { background: white; color: var(--gray); border: 1px solid #eee; }
         .btn-keep { background: var(--accent); color: white; width: 75px; height: 75px; font-size: 28px; box-shadow: 0 8px 20px rgba(214, 140, 140, 0.4); }
 
-        /* === 決選擂台 (Shortlist Mode) === */
+        /* === 決選擂台 === */
         .shortlist-mode { display: none; height: 100%; flex-direction: column; }
         .shortlist-mode.show { display: flex; animation: fadeIn 0.5s; }
         
@@ -83,21 +110,21 @@
         .mode-desc { text-align: center; color: #999; font-size: 13px; margin-bottom: 20px; }
 
         .pk-container { flex: 1; overflow-y: auto; padding-bottom: 20px; }
-        
         .pk-card {
             background: white; border-radius: 16px; padding: 10px; margin-bottom: 15px;
             display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
         }
-        .pk-card:active { transform: scale(0.98); }
         .pk-card.selected { border-color: var(--primary); background: #F0F5F7; }
-        
         .pk-img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; }
         .pk-info { flex: 1; }
         .pk-name { font-weight: bold; font-size: 16px; color: var(--text); }
         .pk-meta { font-size: 12px; color: #999; margin-top: 2px; }
 
-        .final-actions { text-align: center; margin-top: auto; padding-bottom: 30px; }
+        .final-actions { 
+            text-align: center; margin-top: auto; 
+            padding-bottom: max(30px, env(safe-area-inset-bottom)); /* 避開底部 */
+        }
         .btn-final {
             background: var(--primary); color: white; border: none; padding: 15px 40px;
             border-radius: 30px; font-size: 16px; font-weight: bold; width: 100%;
@@ -168,7 +195,7 @@
                     <i class="fas fa-times"></i>
                 </button>
                 <div style="font-size:12px; color:#999; text-align:center;">
-                    左邊：換一張<br>右邊：加入候選
+                    換一張<br>Next
                 </div>
                 <button class="big-btn btn-keep" onclick="addToWishlist()">
                     <i class="fas fa-heart"></i>
@@ -179,13 +206,10 @@
         <div id="shortlistMode" class="shortlist-mode">
             <div class="mode-title">決選擂台 👑</div>
             <div class="mode-desc">這 3 家你都想吃，選一家最想去的！</div>
-            
-            <div id="pkList" class="pk-container">
-                </div>
-
+            <div id="pkList" class="pk-container"></div>
             <div class="final-actions">
                 <button class="btn-final btn-random-pick" onclick="randomPickFinal()">
-                    🎲 有選擇障礙？幫我選！
+                    🎲 幫我選！
                 </button>
             </div>
         </div>
@@ -197,7 +221,6 @@
         <h2 style="color:var(--primary); margin-bottom:5px;">今晚就吃這個！</h2>
         <h1 id="finalName" style="font-size:32px; margin:0 0 20px 0;"></h1>
         <p style="color:#666;">別再猶豫了，現在就出發！</p>
-        
         <a id="mapLink" href="#" target="_blank" class="btn-final" style="display:flex; align-items:center; justify-content:center; text-decoration:none;">
             <i class="fas fa-location-arrow" style="margin-right:10px;"></i> Google Maps 導航
         </a>
@@ -205,74 +228,55 @@
     </div>
 
     <script>
-        // === 資料庫 (50+ 選項，完整 V2 格式) ===
+        // === 資料庫 (50+ 完整版) ===
         const database = [
-            // --- 台式 & 小吃 ---
-            { name: "滷肉飯", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1627207644063-267926715201?w=600", desc: "國民美食，肥瘦滷汁淋在白飯上，簡單卻銷魂。", shops: ["鬍鬚張", "金峰", "矮仔財", "家裡附近那家"] },
-            { name: "紅燒牛肉麵", cat: "台式", price: 2, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "濃郁湯頭配上大塊牛肉，台灣之光。", shops: ["林東芳", "段純貞", "三商巧福", "永康牛肉麵"] },
-            { name: "乾麵 + 滷味", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600", desc: "簡單的麻醬或炸醬麵，配點豆干海帶。", shops: ["巷口麵店", "福州乾麵", "南機場"] },
-            { name: "大雞排 + 珍奶", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "炸得金黃酥脆，罪惡感與幸福感同時爆表。", shops: ["豪大大", "派克", "天使雞排", "艋舺"] },
-            { name: "脆皮臭豆腐", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1583069358212-04e8d89ce58a?w=600", desc: "外酥內嫩，塞入泡菜一口咬下，絕配。", shops: ["阿大", "里長伯", "師大夜市"] },
-            { name: "蚵仔煎", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=600", desc: "Q彈粉漿包裹鮮蚵與小白菜，淋上甜辣醬。", shops: ["寧夏夜市", "士林夜市", "賴雞蛋"] },
-            { name: "清粥小菜", cat: "台式", price: 2, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1516684732738-16fa2021c179?w=600", desc: "清淡白粥配上多樣小菜，暖胃又豐富。", shops: ["小李子", "無名粥品", "復興南路"] },
-            { name: "台式熱炒", cat: "台式", price: 2, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1551249721-a4b51cc13075?w=600", desc: "宮保雞丁、鳳梨蝦球，配啤酒最對味。", shops: ["先進海產", "臨洋港", "長安東路"] },
-            { name: "火雞肉飯", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1606525437679-037aca74a3e9?w=600", desc: "鮮嫩火雞肉絲淋上雞油，香氣四溢。", shops: ["噴水", "劉里長", "嘉義雞肉飯"] },
-            { name: "溫州大餛飩", cat: "台式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1596458397223-93c66f25459b?w=600", desc: "皮薄餡大，加點紅油抄手更過癮。", shops: ["老虎醬", "楊記", "花蓮扁食"] },
-            { name: "涼麵 + 味噌湯", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1594975519808-8df04405362a?w=600", desc: "麻醬香氣配上小黃瓜，夏天必吃組合。", shops: ["陳家", "福德", "劉媽媽"] },
-            { name: "潤餅捲", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1609180746973-20739c381c8b?w=600", desc: "滿滿蔬菜與花生粉，清爽又有飽足感。", shops: ["阿弘", "中華一餅", "夜市攤位"] },
-            { name: "麻辣鴨血", cat: "台式", price: 1, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1541280910158-c4e34faf2c00?w=600", desc: "滑嫩鴨血吸滿辣湯，入味又開胃。", shops: ["詹記", "太和殿", "夜市麻辣"] },
-            { name: "水餃 / 鍋貼", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600", desc: "皮薄餡多，沾醬油醋最對味。", shops: ["八方雲集", "四海遊龍", "五花馬"] },
-
-            // --- 日式料理 ---
-            { name: "日式拉麵", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600", desc: "濃郁湯頭配上勁道麵條，暖心首選。", shops: ["一蘭", "屯京", "鬼金棒", "鳥人"] },
-            { name: "迴轉壽司", cat: "日式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc: "清爽無負擔，想吃多少拿多少。", shops: ["藏壽司", "壽司郎", "爭鮮", "Hama"] },
-            { name: "炸豬排定食", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1616428467478-43d969248232?w=600", desc: "外酥內嫩的厚切豬排，配上高麗菜絲。", shops: ["勝博殿", "杏子", "福勝亭", "品田"] },
-            { name: "牛丼", cat: "日式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1554502078-ef0fc409efce?w=600", desc: "大碗肉片鋪在飯上，快速滿足。", shops: ["吉野家", "Sukiya", "松屋"] },
-            { name: "日式咖哩", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1604152135912-04a022e23696?w=600", desc: "濃郁甘甜的日式咖哩，大人小孩都愛。", shops: ["CoCo壹番屋", "通庵", "佐藤"] },
-            { name: "烏龍麵", cat: "日式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=600", desc: "Q彈滑順的麵條，配上炸物天婦羅。", shops: ["丸亀製麵", "稻禾", "土三寒六"] },
-            { name: "日式燒肉", cat: "日式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1592685829283-7c0bb77df3c9?w=600", desc: "享受自己動手烤肉的樂趣，肉食者天堂。", shops: ["乾杯", "老乾杯", "牛角", "茶六"] },
-            { name: "居酒屋串燒", cat: "日式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=600", desc: "下班後的小酌時光，炭火香氣迷人。", shops: ["吳留手", "大村武", "激安"] },
-            { name: "生魚片丼飯", cat: "日式", price: 3, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1562436260-8c9216eeb703?w=600", desc: "滿滿的新鮮海鮮鋪在醋飯上，豪華享受。", shops: ["瞞著爹", "金泰", "築地"] },
-            { name: "天婦羅丼", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1560155016-16e6c1cc3e53?w=600", desc: "豪邁的炸蝦與蔬菜，淋上鹹甜醬汁。", shops: ["金子半之助", "天吉屋"] },
-            { name: "大阪燒", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1563489851-9040854d9203?w=600", desc: "滿滿的高麗菜與配料，淋上美乃滋。", shops: ["千房", "鐵匠", "鶴橋風月"] },
-
-            // --- 西式 & 速食 ---
-            { name: "麥當勞", cat: "速食", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600", desc: "熟悉的味道，薯條是本體。", shops: ["麥當勞", "肯德基", "漢堡王"] },
-            { name: "肯德基 KFC", cat: "速食", price: 1, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "想吃炸雞和蛋塔的時候，這是不二之選。", shops: ["肯德基", "拿坡里", "胖老爹"] },
-            { name: "披薩 Pizza", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600", desc: "牽絲的起司與酥脆餅皮，聚餐首選。", shops: ["必勝客", "達美樂", "蘇阿姨"] },
-            { name: "Subway", cat: "西式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1509722747741-092075b55909?w=600", desc: "滿滿蔬菜的潛艇堡，健康又方便。", shops: ["Subway", "Quiznos"] },
-            { name: "義大利麵", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600", desc: "奶油、青醬或番茄，口味多變。", shops: ["薄多義", "JAPOLI", "薩莉亞"] },
-            { name: "美式早午餐", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1533089862017-5614ecb3f2f2?w=600", desc: "班尼迪克蛋配咖啡，悠閒的一餐。", shops: ["Second Floor", "The Diner", "Q Burger"] },
-            { name: "牛排館", cat: "西式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600", desc: "慶祝節日或犒賞自己的好選擇。", shops: ["王品", "茹絲葵", "孫東寶", "教父"] },
-            { name: "美式漢堡", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600", desc: "手工肉排多汁厚實，大口咬下超滿足。", shops: ["KUA`AINA", "GB", "Bravo"] },
-            { name: "凱薩沙拉", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc: "大量生菜配上雞肉與麵包丁，輕盈一餐。", shops: ["Costco", "沙拉專賣店", "超商"] },
-            { name: "義式燉飯", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=600", desc: "吸滿高湯精華的米粒，濃郁又飽足。", shops: ["黑米", "隨意鳥地方"] },
-
-            // --- 火鍋 & 湯類 ---
-            { name: "麻辣火鍋", cat: "火鍋", price: 3, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1582236357997-6a422a57ae22?w=600", desc: "香辣過癮，適合重口味與聚餐。", shops: ["海底撈", "詹記", "馬辣", "老四川"] },
-            { name: "個人小火鍋", cat: "火鍋", price: 1, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1547592166-23acbe34071b?w=600", desc: "一個人也能暖暖吃鍋，CP值高。", shops: ["三媽", "大呼過癮", "石二鍋", "築間"] },
-            { name: "壽喜燒", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1584213123849-5f1118335914?w=600", desc: "鹹甜醬汁涮肉片，沾蛋液超滑順。", shops: ["MOMO Paradise", "一番地", "潮肉"] },
-            { name: "薑母鴨/羊肉爐", cat: "台式", price: 2, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1616428467478-43d969248232?w=600", desc: "冬天進補首選，炭火加熱更有味。", shops: ["霸味", "下港", "雅香"] },
-
-            // --- 異國 & 其他 ---
-            { name: "韓式炸雞", cat: "韓式", price: 2, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "裹滿甜辣醬汁的酥脆炸雞，配醃蘿蔔。", shops: ["起家雞", "bb.q", "Nene"] },
-            { name: "韓式泡菜鍋", cat: "韓式", price: 2, heavy: false, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "酸辣開胃，配上一碗白飯剛剛好。", shops: ["涓豆腐", "北村", "三元"] },
-            { name: "石鍋拌飯", cat: "韓式", price: 2, heavy: false, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc: "酥脆鍋巴配上豐富配菜，拌在一起吃。", shops: ["韓鶴亭", "高麗園"] },
-            { name: "泰式料理", cat: "泰式", price: 2, heavy: false, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600", desc: "酸辣開胃，月亮蝦餅必點。", shops: ["瓦城", "NARA", "泰市場"] },
-            { name: "越南河粉", cat: "越式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600", desc: "清甜湯頭配上滑順河粉，清爽選擇。", shops: ["誠記", "L.A PHO", "CYCLO"] },
-            { name: "小籠包", cat: "中式", price: 3, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600", desc: "皮薄汁多，搭配薑絲醋一口咬下。", shops: ["鼎泰豐", "點水樓", "杭州小籠湯包"] },
-            { name: "港式飲茶", cat: "港式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1541696490865-e6f720e9c195?w=600", desc: "燒賣、蝦餃、叉燒包，樣樣都來一點。", shops: ["點點心", "添好運", "京星"] },
-            { name: "燒臘便當", cat: "港式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600", desc: "油雞、燒鴨、叉燒，配上蔥油最下飯。", shops: ["鳳城", "香港家鴻", "好味"] },
-            { name: "健康餐盒", cat: "健康", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc: "水煮低卡，增肌減脂首選。", shops: ["能量小姐", "健康水煮", "Just Kitchen"] },
-            { name: "印度咖哩", cat: "異國", price: 2, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1604152135912-04a022e23696?w=600", desc: "香料味濃郁，配烤餅一絕。", shops: ["Saffron", "馬友友", "Taj"] },
-            { name: "夏威夷拌飯", cat: "美式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600", desc: "生魚片配大量蔬菜，清爽無負擔。", shops: ["HALOA", "Poké Shop", "JJ's"] }
+            { name: "滷肉飯", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1627207644063-267926715201?w=600", desc: "國民美食，肥瘦滷汁淋在白飯上，簡單卻銷魂。" },
+            { name: "紅燒牛肉麵", cat: "台式", price: 2, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "濃郁湯頭配上大塊牛肉，台灣之光。" },
+            { name: "乾麵 + 滷味", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600", desc: "簡單的麻醬或炸醬麵，配點豆干海帶。" },
+            { name: "大雞排 + 珍奶", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "炸得金黃酥脆，罪惡感與幸福感同時爆表。" },
+            { name: "脆皮臭豆腐", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1583069358212-04e8d89ce58a?w=600", desc: "外酥內嫩，塞入泡菜一口咬下，絕配。" },
+            { name: "台式熱炒", cat: "台式", price: 2, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1551249721-a4b51cc13075?w=600", desc: "宮保雞丁、鳳梨蝦球，配啤酒最對味。" },
+            { name: "火雞肉飯", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1606525437679-037aca74a3e9?w=600", desc: "鮮嫩火雞肉絲淋上雞油，香氣四溢。" },
+            { name: "溫州大餛飩", cat: "台式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1596458397223-93c66f25459b?w=600", desc: "皮薄餡大，加點紅油抄手更過癮。" },
+            { name: "涼麵", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1594975519808-8df04405362a?w=600", desc: "麻醬香氣配上小黃瓜，夏天必吃組合。" },
+            { name: "水餃 / 鍋貼", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600", desc: "皮薄餡多，沾醬油醋最對味。" },
+            { name: "日式拉麵", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600", desc: "濃郁湯頭配上勁道麵條，暖心首選。" },
+            { name: "迴轉壽司", cat: "日式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc: "清爽無負擔，想吃多少拿多少。" },
+            { name: "炸豬排定食", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1616428467478-43d969248232?w=600", desc: "外酥內嫩的厚切豬排，配上高麗菜絲。" },
+            { name: "牛丼", cat: "日式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1554502078-ef0fc409efce?w=600", desc: "大碗肉片鋪在飯上，快速滿足。" },
+            { name: "日式咖哩", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1604152135912-04a022e23696?w=600", desc: "濃郁甘甜的日式咖哩，大人小孩都愛。" },
+            { name: "烏龍麵", cat: "日式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=600", desc: "Q彈滑順的麵條，配上炸物天婦羅。" },
+            { name: "日式燒肉", cat: "日式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1592685829283-7c0bb77df3c9?w=600", desc: "享受自己動手烤肉的樂趣，肉食者天堂。" },
+            { name: "居酒屋串燒", cat: "日式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=600", desc: "下班後的小酌時光，炭火香氣迷人。" },
+            { name: "生魚片丼飯", cat: "日式", price: 3, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1562436260-8c9216eeb703?w=600", desc: "滿滿的新鮮海鮮鋪在醋飯上，豪華享受。" },
+            { name: "天婦羅丼", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1560155016-16e6c1cc3e53?w=600", desc: "豪邁的炸蝦與蔬菜，淋上鹹甜醬汁。" },
+            { name: "麥當勞", cat: "速食", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600", desc: "熟悉的味道，薯條是本體。" },
+            { name: "肯德基 KFC", cat: "速食", price: 1, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "想吃炸雞和蛋塔的時候，這是不二之選。" },
+            { name: "披薩 Pizza", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600", desc: "牽絲的起司與酥脆餅皮，聚餐首選。" },
+            { name: "Subway", cat: "西式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1509722747741-092075b55909?w=600", desc: "滿滿蔬菜的潛艇堡，健康又方便。" },
+            { name: "義大利麵", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600", desc: "奶油、青醬或番茄，口味多變。" },
+            { name: "美式早午餐", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1533089862017-5614ecb3f2f2?w=600", desc: "班尼迪克蛋配咖啡，悠閒的一餐。" },
+            { name: "牛排館", cat: "西式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600", desc: "慶祝節日或犒賞自己的好選擇。" },
+            { name: "美式漢堡", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600", desc: "手工肉排多汁厚實，大口咬下超滿足。" },
+            { name: "健康餐盒", cat: "健康", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc: "水煮低卡，增肌減脂首選。" },
+            { name: "麻辣火鍋", cat: "火鍋", price: 3, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1582236357997-6a422a57ae22?w=600", desc: "香辣過癮，適合重口味與聚餐。" },
+            { name: "個人小火鍋", cat: "火鍋", price: 1, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1547592166-23acbe34071b?w=600", desc: "一個人也能暖暖吃鍋，CP值高。" },
+            { name: "韓式炸雞", cat: "韓式", price: 2, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "裹滿甜辣醬汁的酥脆炸雞，配醃蘿蔔。" },
+            { name: "韓式泡菜鍋", cat: "韓式", price: 2, heavy: false, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "酸辣開胃，配上一碗白飯剛剛好。" },
+            { name: "石鍋拌飯", cat: "韓式", price: 2, heavy: false, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc: "酥脆鍋巴配上豐富配菜，拌在一起吃。" },
+            { name: "泰式料理", cat: "泰式", price: 2, heavy: false, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600", desc: "酸辣開胃，月亮蝦餅必點。" },
+            { name: "越南河粉", cat: "越式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600", desc: "清甜湯頭配上滑順河粉，清爽選擇。" },
+            { name: "小籠包", cat: "中式", price: 3, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600", desc: "皮薄汁多，搭配薑絲醋一口咬下。" },
+            { name: "港式飲茶", cat: "港式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1541696490865-e6f720e9c195?w=600", desc: "燒賣、蝦餃、叉燒包，樣樣都來一點。" },
+            { name: "燒臘便當", cat: "港式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600", desc: "油雞、燒鴨、叉燒，配上蔥油最下飯。" },
+            { name: "印度咖哩", cat: "異國", price: 2, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1604152135912-04a022e23696?w=600", desc: "香料味濃郁，配烤餅一絕。" }
         ];
 
         // === 邏輯區 ===
         let pool = [...database];
         let currentItem = null;
-        let wishlist = []; // 候選清單
-        const MAX_WISH = 3; // 集滿3個進入決選
+        let wishlist = []; 
+        const MAX_WISH = 3;
 
         // 初始化
         setTimeout(() => {
@@ -322,7 +326,6 @@
 
         // 加入候選 (喜歡)
         function addToWishlist() {
-            // 避免重複
             if (wishlist.some(i => i.name === currentItem.name)) {
                 alert("已經在清單裡囉！");
                 nextCard();
@@ -332,7 +335,7 @@
             wishlist.push(currentItem);
             updateCounter();
 
-            // 從 pool 移除，避免重複抽到
+            // 從 pool 移除
             pool = pool.filter(i => i.name !== currentItem.name);
 
             // 檢查是否集滿
@@ -352,7 +355,6 @@
 
         // 過濾器
         function filterOut(reason) {
-            // 從池中移除當前這個
             pool = pool.filter(i => i.name !== currentItem.name);
 
             if (reason === 'cat') {
@@ -393,7 +395,6 @@
         // 幫我選 (隨機)
         function randomPickFinal() {
             const idx = Math.floor(Math.random() * wishlist.length);
-            // 稍微轉一下效果
             let count = 0;
             const interval = setInterval(() => {
                 const cards = document.querySelectorAll('.pk-card');
