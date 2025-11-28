@@ -3,95 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>今天吃什麼？V2</title>
+    <title>今天吃什麼？V3</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 莫蘭迪配色 V2 (更沈穩) */
-            --bg: #F2F4F3;
+            /* 莫蘭迪 V3 - 更清新的配色 */
+            --bg: #F5F7F6;
             --card: #FFFFFF;
-            --primary: #6B8E9B;      /* 灰藍 */
-            --secondary: #8E9B6B;    /* 橄欖綠 */
-            --accent: #D68C8C;       /* 豆沙紅 */
-            --text: #464646;
-            --gray: #9E9E9E;
-            --shadow: 0 8px 25px rgba(107, 142, 155, 0.15);
+            --primary: #7A9CA5;      /* 灰藍 */
+            --secondary: #A5B59C;    /* 抹茶綠 */
+            --accent: #D49A89;       /* 髒粉紅 */
+            --text: #555555;
+            --shadow: 0 8px 30px rgba(122, 156, 165, 0.15);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         body { margin: 0; padding: 0; font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* === 1. 開場問卷 (Onboarding) === */
-        .onboarding-layer {
-            position: fixed; inset: 0; background: var(--bg); z-index: 200;
-            padding: 30px; display: flex; flex-direction: column; justify-content: center;
-            transition: transform 0.4s ease;
-        }
-        .onboarding-layer.hidden { transform: translateY(-100%); }
+        /* === 頂部進度條 === */
+        .header { padding: 15px 20px; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
+        .app-logo { font-size: 18px; font-weight: bold; color: var(--primary); letter-spacing: 1px; }
         
-        .q-step { display: none; animation: fadeIn 0.4s; }
-        .q-step.active { display: block; }
-        
-        .q-title { font-size: 24px; font-weight: bold; margin-bottom: 30px; color: var(--primary); text-align: center; }
-        .option-grid { display: grid; gap: 15px; }
-        .option-btn {
-            padding: 20px; background: white; border: 2px solid transparent;
-            border-radius: 16px; font-size: 18px; font-weight: 500; text-align: center;
-            box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s;
+        .wishlist-counter {
+            background: white; padding: 6px 14px; border-radius: 20px;
+            font-size: 14px; font-weight: bold; color: var(--accent);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.2s;
         }
-        .option-btn:active { transform: scale(0.98); background: #f0f0f0; }
-        .option-btn.selected { border-color: var(--primary); background: #EBF2F5; color: var(--primary); }
+        .wishlist-counter.bump { transform: scale(1.2); }
 
-        /* === 2. 主畫面 === */
-        .header { padding: 15px; text-align: center; z-index: 10; height: 60px; }
-        .app-logo { font-size: 18px; font-weight: bold; color: var(--primary); letter-spacing: 2px; }
-
+        /* === 主舞台 === */
         .main-stage {
             flex: 1; position: relative; width: 100%; max-width: 400px; margin: 0 auto;
             display: flex; flex-direction: column; justify-content: center; padding: 10px 20px;
         }
 
-        /* 卡片設計 */
+        /* 瀏覽模式 - 卡片 */
+        .browse-mode { display: flex; flex-direction: column; height: 100%; }
+        
         .food-card {
             background: var(--card); border-radius: 24px; overflow: hidden;
-            box-shadow: var(--shadow); height: 65vh; display: flex; flex-direction: column;
-            position: relative; animation: popIn 0.3s;
+            box-shadow: var(--shadow); flex: 1; display: flex; flex-direction: column;
+            position: relative; animation: popIn 0.3s; margin-bottom: 20px;
         }
-        .food-img-box { height: 45%; position: relative; }
+        .food-img-box { height: 50%; position: relative; }
         .food-img { width: 100%; height: 100%; object-fit: cover; }
         .price-badge {
             position: absolute; bottom: 10px; right: 10px;
-            background: rgba(0,0,0,0.6); color: white; padding: 4px 10px;
-            border-radius: 20px; font-size: 12px; backdrop-filter: blur(4px);
+            background: rgba(255,255,255,0.9); color: var(--text); padding: 4px 10px;
+            border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .food-content { padding: 20px; flex: 1; overflow-y: auto; }
-        .food-title { font-size: 26px; font-weight: bold; margin-bottom: 5px; color: var(--text); }
-        .food-desc { font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 15px; }
+        .food-title { font-size: 24px; font-weight: bold; margin-bottom: 5px; color: var(--text); }
+        .food-desc { font-size: 14px; color: #888; line-height: 1.5; margin-bottom: 15px; }
         
-        .section-title { font-size: 12px; font-weight: bold; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .rec-shops { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .shop-tag { background: #F0F4F5; padding: 6px 12px; border-radius: 8px; font-size: 13px; color: #555; }
+        .tag-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; }
+        .info-tag { background: #EDF2F4; padding: 4px 10px; border-radius: 8px; font-size: 12px; color: #666; }
 
-        /* === 3. 快速篩選丸 (Quick Filters) === */
-        .quick-actions {
-            margin-top: 15px; display: flex; gap: 8px; overflow-x: auto; 
-            padding-bottom: 5px; scrollbar-width: none;
-        }
-        .quick-actions::-webkit-scrollbar { display: none; }
-        
-        .chip-btn {
-            white-space: nowrap; padding: 8px 16px; border-radius: 20px;
-            border: 1px solid #E0E0E0; background: white; color: #888;
-            font-size: 13px; flex-shrink: 0; transition: all 0.2s;
-        }
-        .chip-btn:active { background: var(--accent); color: white; border-color: var(--accent); }
-
-        /* === 4. 底部按鈕 === */
+        /* 底部按鈕 */
         .bottom-controls {
-            padding: 20px 30px 40px; display: flex; justify-content: space-between; align-items: center;
-            width: 100%; max-width: 400px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px 30px;
         }
         .big-btn {
             width: 65px; height: 65px; border-radius: 50%; border: none;
@@ -99,8 +72,41 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.1s;
         }
         .big-btn:active { transform: scale(0.9); }
-        .btn-pass { background: white; color: var(--accent); border: 2px solid #FFF0F0; }
-        .btn-like { background: var(--primary); color: white; width: 75px; height: 75px; font-size: 30px; box-shadow: 0 8px 20px rgba(107, 142, 155, 0.4); }
+        .btn-pass { background: white; color: var(--gray); border: 1px solid #eee; }
+        .btn-keep { background: var(--accent); color: white; width: 75px; height: 75px; font-size: 28px; box-shadow: 0 8px 20px rgba(214, 140, 140, 0.4); }
+
+        /* === 決選擂台 (Shortlist Mode) === */
+        .shortlist-mode { display: none; height: 100%; flex-direction: column; }
+        .shortlist-mode.show { display: flex; animation: fadeIn 0.5s; }
+        
+        .mode-title { font-size: 22px; font-weight: bold; color: var(--primary); text-align: center; margin-bottom: 5px; }
+        .mode-desc { text-align: center; color: #999; font-size: 13px; margin-bottom: 20px; }
+
+        .pk-container { flex: 1; overflow-y: auto; padding-bottom: 20px; }
+        
+        .pk-card {
+            background: white; border-radius: 16px; padding: 10px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+        }
+        .pk-card:active { transform: scale(0.98); }
+        .pk-card.selected { border-color: var(--primary); background: #F0F5F7; }
+        
+        .pk-img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; }
+        .pk-info { flex: 1; }
+        .pk-name { font-weight: bold; font-size: 16px; color: var(--text); }
+        .pk-meta { font-size: 12px; color: #999; margin-top: 2px; }
+
+        .final-actions { text-align: center; margin-top: auto; padding-bottom: 30px; }
+        .btn-final {
+            background: var(--primary); color: white; border: none; padding: 15px 40px;
+            border-radius: 30px; font-size: 16px; font-weight: bold; width: 100%;
+            box-shadow: 0 5px 15px rgba(122, 156, 165, 0.3);
+        }
+        .btn-random-pick {
+            background: white; color: var(--secondary); border: 2px solid var(--secondary);
+            margin-top: 10px;
+        }
 
         /* 成功畫面 */
         .success-overlay {
@@ -108,18 +114,16 @@
             display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px;
         }
         .success-overlay.show { display: flex; animation: fadeIn 0.5s; }
-        .final-img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; box-shadow: var(--shadow); }
-        .map-btn {
-            margin-top: 30px; background: var(--primary); color: white; padding: 15px 40px;
-            border-radius: 30px; text-decoration: none; font-weight: bold; box-shadow: var(--shadow);
-        }
+        .final-img { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; margin-bottom: 25px; box-shadow: var(--shadow); border: 5px solid white; }
+        
+        /* 快速篩選丸 */
+        .quick-actions { margin-top: 10px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .quick-actions::-webkit-scrollbar { display: none; }
+        .chip-btn { white-space: nowrap; padding: 6px 12px; border-radius: 15px; border: 1px solid #E0E0E0; background: white; color: #888; font-size: 12px; flex-shrink: 0; }
 
-        /* 狀態提示 */
-        .toast {
-            position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); color: white; padding: 8px 16px;
-            border-radius: 20px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50;
-        }
+        /* Loading */
+        .loading-screen { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .loading-screen.hide { opacity: 0; pointer-events: none; }
 
         @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -127,87 +131,77 @@
 </head>
 <body>
 
-    <div id="toast" class="toast">篩選條件已更新</div>
-
-    <div id="onboarding" class="onboarding-layer">
-        <div class="q-step active" id="step1">
-            <div class="q-title">今天想吃...</div>
-            <div class="option-grid">
-                <div class="option-btn" onclick="nextStep(1, 'price', 1)">💰 便宜簡單吃</div>
-                <div class="option-btn" onclick="nextStep(1, 'price', 2)">💵 一般聚餐價位</div>
-                <div class="option-btn" onclick="nextStep(1, 'price', 3)">💎 豪華大餐</div>
-                <div class="option-btn" onclick="nextStep(1, 'price', 0)">🤷 沒差，看感覺</div>
-            </div>
-        </div>
-        <div class="q-step" id="step2">
-            <div class="q-title">現在餓嗎？</div>
-            <div class="option-grid">
-                <div class="option-btn" onclick="nextStep(2, 'heavy', false)">🥗 不太餓，輕食就好</div>
-                <div class="option-btn" onclick="nextStep(2, 'heavy', true)">🍖 超餓，我要吃飽</div>
-                <div class="option-btn" onclick="nextStep(2, 'heavy', null)">🤷 都可以</div>
-            </div>
-        </div>
-        <div class="q-step" id="step3">
-            <div class="q-title">天氣/心情如何？</div>
-            <div class="option-grid">
-                <div class="option-btn" onclick="startGame('soup')">🥣 想喝熱湯</div>
-                <div class="option-btn" onclick="startGame('dry')">🥢 想吃乾的</div>
-                <div class="option-btn" onclick="startGame('spicy')">🌶️ 想吃辣！</div>
-                <div class="option-btn" onclick="startGame('all')">🌈 沒想法，給我驚喜</div>
-            </div>
-        </div>
+    <div id="loading" class="loading-screen">
+        <i class="fas fa-utensils fa-spin" style="font-size:40px; color:var(--primary);"></i>
     </div>
 
     <div class="header">
         <div class="app-logo">WHAT TO EAT</div>
+        <div id="wishCounter" class="wishlist-counter">❤️ 0 / 3</div>
     </div>
 
     <div class="main-stage">
-        <div id="cardContainer" class="food-card">
-            <div class="food-img-box">
-                <img id="fImg" class="food-img" src="">
-                <span id="fPrice" class="price-badge">$$</span>
-            </div>
-            <div class="food-content">
-                <div id="fName" class="food-title">載入中...</div>
-                <div id="fDesc" class="food-desc"></div>
-                
-                <div class="section-title">✨ 名店 / 常見選擇</div>
-                <div id="fShops" class="rec-shops"></div>
-
-                <div class="section-title" style="margin-top:10px;">🤔 不想吃這個？點擊過濾：</div>
-                <div class="quick-actions">
-                    <div class="chip-btn" onclick="filterOut('cat')">🚫 不想吃這類</div>
-                    <div class="chip-btn" onclick="filterOut('heavy')">🥦 太油膩了</div>
-                    <div class="chip-btn" onclick="filterOut('spicy')">🌶️ 不吃辣</div>
-                    <div class="chip-btn" onclick="filterOut('expensive')">💸 太貴了</div>
-                    <div class="chip-btn" onclick="filterOut('rice')">🍚 不想吃飯</div>
-                    <div class="chip-btn" onclick="filterOut('noodle')">🍜 不想吃麵</div>
+        
+        <div id="browseMode" class="browse-mode">
+            <div id="cardContainer" class="food-card">
+                <div class="food-img-box">
+                    <img id="fImg" class="food-img" src="">
+                    <span id="fPrice" class="price-badge">$$</span>
+                </div>
+                <div class="food-content">
+                    <div id="fName" class="food-title">載入中...</div>
+                    <div class="tag-row" id="fTags"></div>
+                    <div id="fDesc" class="food-desc"></div>
+                    
+                    <div style="font-size:12px; font-weight:bold; color:var(--primary); margin-bottom:5px;">過濾掉：</div>
+                    <div class="quick-actions">
+                        <div class="chip-btn" onclick="filterOut('cat')">🚫 這類先不要</div>
+                        <div class="chip-btn" onclick="filterOut('heavy')">🥦 太油膩</div>
+                        <div class="chip-btn" onclick="filterOut('spicy')">🌶️ 不吃辣</div>
+                        <div class="chip-btn" onclick="filterOut('expensive')">💸 太貴</div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="bottom-controls">
-        <button class="big-btn btn-pass" onclick="nextCard()">
-            <i class="fas fa-times"></i>
-        </button>
-        <div style="font-size:12px; color:#999;">換一個 / 喜歡</div>
-        <button class="big-btn btn-like" onclick="confirmChoice()">
-            <i class="fas fa-heart"></i>
-        </button>
+            <div class="bottom-controls">
+                <button class="big-btn btn-pass" onclick="nextCard()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div style="font-size:12px; color:#999; text-align:center;">
+                    左邊：換一張<br>右邊：加入候選
+                </div>
+                <button class="big-btn btn-keep" onclick="addToWishlist()">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="shortlistMode" class="shortlist-mode">
+            <div class="mode-title">決選擂台 👑</div>
+            <div class="mode-desc">這 3 家你都想吃，選一家最想去的！</div>
+            
+            <div id="pkList" class="pk-container">
+                </div>
+
+            <div class="final-actions">
+                <button class="btn-final btn-random-pick" onclick="randomPickFinal()">
+                    🎲 有選擇障礙？幫我選！
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <div id="successOverlay" class="success-overlay">
         <img id="finalImg" class="final-img">
-        <h2 style="color:var(--primary); margin-bottom:5px;">決定就是它了！</h2>
+        <h2 style="color:var(--primary); margin-bottom:5px;">今晚就吃這個！</h2>
         <h1 id="finalName" style="font-size:32px; margin:0 0 20px 0;"></h1>
         <p style="color:#666;">別再猶豫了，現在就出發！</p>
         
-        <a id="mapLink" href="#" target="_blank" class="map-btn">
-            <i class="fas fa-location-arrow"></i> Google Maps 搜尋
+        <a id="mapLink" href="#" target="_blank" class="btn-final" style="display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fas fa-location-arrow" style="margin-right:10px;"></i> Google Maps 導航
         </a>
-        <div style="margin-top:30px; color:#999; text-decoration:underline;" onclick="location.reload()">重玩一次</div>
+        <div style="margin-top:30px; color:#999; text-decoration:underline; cursor:pointer;" onclick="location.reload()">重玩一次</div>
     </div>
 
     <script>
@@ -275,50 +269,20 @@
         ];
 
         // === 邏輯區 ===
-        let userPref = { price: 0, heavy: null }; // 0=all, 1=cheap, 2=mid, 3=high
-        let pool = [];
+        let pool = [...database];
         let currentItem = null;
+        let wishlist = []; // 候選清單
+        const MAX_WISH = 3; // 集滿3個進入決選
 
-        // 1. 問卷邏輯
-        function nextStep(current, key, value) {
-            userPref[key] = value;
-            document.getElementById(`step${current}`).classList.remove('active');
-            document.getElementById(`step${current+1}`).classList.add('active');
-        }
-
-        // 2. 開始遊戲 (初始化篩選)
-        function startGame(type) {
-            // 隱藏問卷
-            document.getElementById('onboarding').classList.add('hidden');
-            
-            // 初步篩選資料庫
-            pool = database.filter(item => {
-                // 價格篩選 (0代表沒差)
-                if (userPref.price !== 0 && item.price !== userPref.price) return false;
-                
-                // 餓度篩選 (heavy: true=飽/油, false=輕食)
-                if (userPref.heavy !== null && item.heavy !== userPref.heavy) return false;
-
-                // 類型篩選 (Q3)
-                if (type === 'soup' && !item.soup) return false;
-                if (type === 'dry' && item.soup) return false;
-                if (type === 'spicy' && !item.spicy) return false;
-                
-                return true;
-            });
-
-            if (pool.length === 0) {
-                alert("條件太嚴苛，找不到餐廳！將放寬條件...");
-                pool = [...database]; // 重置
-            }
-
+        // 初始化
+        setTimeout(() => {
+            document.getElementById('loading').classList.add('hide');
             renderCard();
-        }
+        }, 1000);
 
-        // 3. 渲染卡片
         function renderCard() {
             if (pool.length === 0) {
-                alert("選項都看完了！將重新循環...");
+                alert("選項都看完了！重新洗牌...");
                 pool = [...database];
             }
 
@@ -326,39 +290,71 @@
             const idx = Math.floor(Math.random() * pool.length);
             currentItem = pool[idx];
 
-            // 移除動畫class以重播
-            const card = document.getElementById('cardContainer');
-            card.style.animation = 'none';
-            card.offsetHeight; // trigger reflow
-            card.style.animation = 'popIn 0.3s';
-
             // 填入資料
             document.getElementById('fImg').src = currentItem.img;
             document.getElementById('fName').innerText = currentItem.name;
             document.getElementById('fDesc').innerText = currentItem.desc;
             
-            // 價格顯示
+            // 標籤
+            let tagsHtml = `<span class="info-tag">${currentItem.cat}</span>`;
+            if(currentItem.heavy) tagsHtml += `<span class="info-tag">飽足</span>`;
+            if(!currentItem.heavy) tagsHtml += `<span class="info-tag">輕食</span>`;
+            if(currentItem.soup) tagsHtml += `<span class="info-tag">有湯</span>`;
+            if(currentItem.spicy) tagsHtml += `<span class="info-tag">辣</span>`;
+            document.getElementById('fTags').innerHTML = tagsHtml;
+
+            // 價格
             let pStr = "";
-            for(let i=0; i<currentItem.price; i++) pStr += "$";
+            for(let i=0; i<3; i++) pStr += i < currentItem.price ? "★" : "☆";
             document.getElementById('fPrice').innerText = pStr;
 
-            // 名店標籤
-            document.getElementById('fShops').innerHTML = currentItem.shops.map(s => `<span class="shop-tag">${s}</span>`).join('');
+            // 觸發動畫
+            const card = document.getElementById('cardContainer');
+            card.style.animation = 'none';
+            card.offsetHeight; 
+            card.style.animation = 'popIn 0.3s';
         }
 
-        // 4. 按鈕操作
+        // 換一張 (不喜歡)
         function nextCard() {
-            // 單純換一張 (不移除)
             renderCard();
         }
 
+        // 加入候選 (喜歡)
+        function addToWishlist() {
+            // 避免重複
+            if (wishlist.some(i => i.name === currentItem.name)) {
+                alert("已經在清單裡囉！");
+                nextCard();
+                return;
+            }
+
+            wishlist.push(currentItem);
+            updateCounter();
+
+            // 從 pool 移除，避免重複抽到
+            pool = pool.filter(i => i.name !== currentItem.name);
+
+            // 檢查是否集滿
+            if (wishlist.length >= MAX_WISH) {
+                showShortlist();
+            } else {
+                nextCard();
+            }
+        }
+
+        function updateCounter() {
+            const counter = document.getElementById('wishCounter');
+            counter.innerText = `❤️ ${wishlist.length} / ${MAX_WISH}`;
+            counter.classList.add('bump');
+            setTimeout(() => counter.classList.remove('bump'), 200);
+        }
+
+        // 過濾器
         function filterOut(reason) {
-            showToast("已過濾條件，搜尋中...");
-            
             // 從池中移除當前這個
             pool = pool.filter(i => i.name !== currentItem.name);
 
-            // 根據理由移除更多
             if (reason === 'cat') {
                 pool = pool.filter(i => i.cat !== currentItem.cat);
             } else if (reason === 'heavy') {
@@ -367,30 +363,57 @@
                 pool = pool.filter(i => !i.spicy);
             } else if (reason === 'expensive') {
                 pool = pool.filter(i => i.price < currentItem.price);
-            } else if (reason === 'rice') {
-                pool = pool.filter(i => !i.name.includes('飯') && !i.name.includes('丼'));
-            } else if (reason === 'noodle') {
-                pool = pool.filter(i => !i.name.includes('麵') && !i.name.includes('粉'));
             }
-
             renderCard();
         }
 
-        function confirmChoice() {
-            document.getElementById('successOverlay').classList.add('show');
-            document.getElementById('finalImg').src = currentItem.img;
-            document.getElementById('finalName').innerText = currentItem.name;
+        // === 決選模式 ===
+        function showShortlist() {
+            document.getElementById('browseMode').style.display = 'none';
+            document.getElementById('shortlistMode').classList.add('show');
             
-            // Google Maps 搜尋連結
-            const q = encodeURIComponent(currentItem.name + " 附近");
-            document.getElementById('mapLink').href = `https://www.google.com/maps/search/${q}`;
+            const container = document.getElementById('pkList');
+            container.innerHTML = wishlist.map((item, idx) => `
+                <div class="pk-card" onclick="finalDecide(${idx})">
+                    <img src="${item.img}" class="pk-img">
+                    <div class="pk-info">
+                        <div class="pk-name">${item.name}</div>
+                        <div class="pk-meta">${item.desc}</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:#ddd;"></i>
+                </div>
+            `).join('');
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.opacity = 1;
-            setTimeout(() => t.style.opacity = 0, 2000);
+        // 最終選擇 (手動點選)
+        function finalDecide(idx) {
+            showSuccess(wishlist[idx]);
+        }
+
+        // 幫我選 (隨機)
+        function randomPickFinal() {
+            const idx = Math.floor(Math.random() * wishlist.length);
+            // 稍微轉一下效果
+            let count = 0;
+            const interval = setInterval(() => {
+                const cards = document.querySelectorAll('.pk-card');
+                cards.forEach(c => c.classList.remove('selected'));
+                cards[count % cards.length].classList.add('selected');
+                count++;
+                if (count > 10) {
+                    clearInterval(interval);
+                    setTimeout(() => showSuccess(wishlist[idx]), 500);
+                }
+            }, 100);
+        }
+
+        function showSuccess(item) {
+            document.getElementById('successOverlay').classList.add('show');
+            document.getElementById('finalImg').src = item.img;
+            document.getElementById('finalName').innerText = item.name;
+            
+            const q = encodeURIComponent(item.name + " 附近");
+            document.getElementById('mapLink').href = `https://www.google.com/maps/search/?api=1\&query=Naples+Airport{q}`;
         }
 
     </script>
