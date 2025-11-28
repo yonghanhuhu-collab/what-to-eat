@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>今天吃什麼？V3.1</title>
+    <title>今天吃什麼？V4 Mini</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 莫蘭迪 V3 */
-            --bg: #F5F7F6;
+            /* 莫蘭迪 V4 - 舒適沈穩 */
+            --bg: #F0F2F5;
             --card: #FFFFFF;
-            --primary: #7A9CA5;
-            --secondary: #A5B59C;
-            --accent: #D49A89;
-            --text: #555555;
-            --shadow: 0 8px 30px rgba(122, 156, 165, 0.15);
+            --primary: #7A9CA5;      /* 灰藍 */
+            --secondary: #A5B59C;    /* 抹茶 */
+            --accent: #D68C8C;       /* 豆沙 */
+            --text: #4A4A4A;
+            --gray: #A0A0A0;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -25,132 +26,158 @@
             font-family: 'Noto Sans TC', sans-serif; 
             background: var(--bg); 
             color: var(--text); 
-            height: 100vh; /* 固定高度 */
-            height: -webkit-fill-available; /* 解決 Safari 100vh 問題 */
+            /* 關鍵：使用 dvh 適應 iPhone Safari 動態網址列 */
+            height: 100dvh; 
             overflow: hidden; 
             display: flex; 
             flex-direction: column; 
         }
 
-        /* === 頂部 === */
-        .header { 
-            padding: 15px 20px; z-index: 10; display: flex; 
-            justify-content: space-between; align-items: center; 
-            padding-top: max(15px, env(safe-area-inset-top)); /* 避開瀏海 */
+        /* === 0. 開場問卷 (Onboarding) === */
+        .onboarding-layer {
+            position: fixed; inset: 0; background: var(--bg); z-index: 300;
+            padding: 30px 20px; display: flex; flex-direction: column; justify-content: center;
+            transition: transform 0.4s ease;
         }
-        .app-logo { font-size: 18px; font-weight: bold; color: var(--primary); letter-spacing: 1px; }
+        .onboarding-layer.hidden { transform: translateY(-100%); pointer-events: none; }
         
+        .q-step { display: none; animation: fadeIn 0.4s; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+        /* JS切換顯示控制 */
+        .q-step:not(.active) { display: none !important; }
+        
+        .q-title { font-size: 26px; font-weight: bold; margin-bottom: 40px; color: var(--primary); text-align: center; }
+        .option-grid { display: grid; gap: 15px; }
+        .option-btn {
+            padding: 20px; background: white; border: 2px solid transparent;
+            border-radius: 16px; font-size: 18px; font-weight: 500; text-align: center;
+            box-shadow: var(--shadow); cursor: pointer; transition: all 0.1s;
+        }
+        .option-btn:active { background: #EBF2F5; border-color: var(--primary); transform: scale(0.98); }
+
+        /* === 頂部 Header === */
+        .header { 
+            padding: 10px 20px; z-index: 10; display: flex; 
+            justify-content: space-between; align-items: center; 
+            padding-top: max(10px, env(safe-area-inset-top));
+            height: 50px; flex-shrink: 0;
+        }
+        .app-logo { font-size: 16px; font-weight: bold; color: var(--primary); letter-spacing: 1px; }
         .wishlist-counter {
-            background: white; padding: 6px 14px; border-radius: 20px;
-            font-size: 14px; font-weight: bold; color: var(--accent);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.2s;
+            background: white; padding: 4px 12px; border-radius: 20px;
+            font-size: 13px; font-weight: bold; color: var(--accent);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s;
         }
         .wishlist-counter.bump { transform: scale(1.2); }
 
-        /* === 主舞台 === */
+        /* === 主舞台 (卡片區) === */
         .main-stage {
-            flex: 1; position: relative; width: 100%; max-width: 400px; margin: 0 auto;
-            display: flex; flex-direction: column; justify-content: center; 
-            padding: 10px 20px;
-            padding-bottom: 0; /* 底部空間交給 controls 處理 */
+            flex: 1; position: relative; width: 100%; max-width: 420px; margin: 0 auto;
+            display: flex; flex-direction: column; 
+            padding: 10px 20px 0 20px; /* 底部不留白，交給 controls */
+            overflow: hidden; /* 防止溢出 */
         }
 
         /* 瀏覽模式 */
         .browse-mode { 
             display: flex; flex-direction: column; height: 100%; 
-            position: relative;
+            position: relative; 
         }
         
         .food-card {
             background: var(--card); border-radius: 24px; overflow: hidden;
             box-shadow: var(--shadow); 
-            flex: 1; /* 佔滿剩餘空間 */
+            flex: 1; /* 自動填滿剩餘空間 */
             display: flex; flex-direction: column;
             position: relative; animation: popIn 0.3s; 
-            margin-bottom: 20px; /* 與按鈕區的間距 */
+            margin-bottom: 15px; /* 與按鈕區的間距 */
+            min-height: 0; /* 讓 flex item 可收縮 */
         }
-        .food-img-box { height: 45%; position: relative; background: #eee; }
+        
+        /* 圖片區域：高度設為彈性，但在小螢幕不過高 */
+        .food-img-box { 
+            flex: 0 0 40%; /* 佔卡片高度 40% */
+            position: relative; background: #eee; overflow: hidden;
+        }
         .food-img { width: 100%; height: 100%; object-fit: cover; }
         .price-badge {
             position: absolute; bottom: 10px; right: 10px;
-            background: rgba(255,255,255,0.9); color: var(--text); padding: 4px 10px;
-            border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.95); color: var(--text); padding: 4px 10px;
+            border-radius: 12px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .food-content { padding: 20px; flex: 1; overflow-y: auto; }
-        .food-title { font-size: 24px; font-weight: bold; margin-bottom: 5px; color: var(--text); }
-        .food-desc { font-size: 14px; color: #888; line-height: 1.5; margin-bottom: 15px; }
+        /* 內容區域：可捲動 */
+        .food-content { 
+            padding: 15px 20px; 
+            flex: 1; 
+            overflow-y: auto; /* 內容太長可滑動 */
+            -webkit-overflow-scrolling: touch;
+        }
+        .food-title { font-size: 22px; font-weight: bold; margin-bottom: 5px; color: var(--text); }
+        .food-desc { font-size: 14px; color: #666; line-height: 1.4; margin-bottom: 12px; }
         
-        .tag-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; }
-        .info-tag { background: #EDF2F4; padding: 4px 10px; border-radius: 8px; font-size: 12px; color: #666; }
+        .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .info-tag { background: #EDF2F4; padding: 3px 8px; border-radius: 6px; font-size: 11px; color: #666; }
 
-        /* === 關鍵修正：底部按鈕區 === */
+        /* 快速篩選丸 (樣式優化) */
+        .filter-section { margin-top: 5px; padding-top: 10px; border-top: 1px dashed #eee; }
+        .filter-title { font-size: 11px; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
+        .quick-actions { 
+            display: flex; gap: 8px; overflow-x: auto; 
+            padding-bottom: 5px; scrollbar-width: none; 
+        }
+        .quick-actions::-webkit-scrollbar { display: none; }
+        
+        .chip-btn { 
+            white-space: nowrap; padding: 6px 12px; border-radius: 15px; 
+            border: 1px solid #E0E0E0; background: white; color: #888; 
+            font-size: 12px; flex-shrink: 0; transition: all 0.1s;
+        }
+        .chip-btn:active { background: #FFF0F0; border-color: var(--accent); color: var(--accent); }
+
+        /* === 底部按鈕區 (針對 Mini 優化) === */
         .bottom-controls {
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 30px;
-            /* 這裡很重要：給予底部足夠的緩衝空間，避開 Safari 網址列 */
-            padding-bottom: max(30px, env(safe-area-inset-bottom)); 
+            /* 讓按鈕懸浮且避開底部橫條 */
+            padding-bottom: max(20px, env(safe-area-inset-bottom)); 
+            height: 100px;
             width: 100%; max-width: 400px; margin: 0 auto;
-            position: relative; z-index: 20;
+            flex-shrink: 0; /* 防止被擠壓 */
         }
+        
         .big-btn {
-            width: 65px; height: 65px; border-radius: 50%; border: none;
-            font-size: 24px; display: flex; align-items: center; justify-content: center;
+            width: 60px; height: 60px; border-radius: 50%; border: none;
+            font-size: 22px; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.1s;
         }
         .big-btn:active { transform: scale(0.9); }
         .btn-pass { background: white; color: var(--gray); border: 1px solid #eee; }
-        .btn-keep { background: var(--accent); color: white; width: 75px; height: 75px; font-size: 28px; box-shadow: 0 8px 20px rgba(214, 140, 140, 0.4); }
+        .btn-keep { background: var(--accent); color: white; width: 70px; height: 70px; font-size: 26px; box-shadow: 0 8px 20px rgba(214, 140, 140, 0.4); }
 
-        /* === 決選擂台 === */
-        .shortlist-mode { display: none; height: 100%; flex-direction: column; }
-        .shortlist-mode.show { display: flex; animation: fadeIn 0.5s; }
-        
-        .mode-title { font-size: 22px; font-weight: bold; color: var(--primary); text-align: center; margin-bottom: 5px; }
-        .mode-desc { text-align: center; color: #999; font-size: 13px; margin-bottom: 20px; }
+        /* === 決選擂台 & 成功畫面 === */
+        .full-screen-mode { 
+            display: none; position: fixed; inset: 0; background: var(--bg); z-index: 50; 
+            flex-direction: column; padding: 20px; padding-top: max(20px, env(safe-area-inset-top));
+        }
+        .full-screen-mode.show { display: flex; animation: fadeIn 0.3s; }
 
         .pk-container { flex: 1; overflow-y: auto; padding-bottom: 20px; }
         .pk-card {
-            background: white; border-radius: 16px; padding: 10px; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+            background: white; border-radius: 16px; padding: 12px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            cursor: pointer; border: 2px solid transparent;
         }
         .pk-card.selected { border-color: var(--primary); background: #F0F5F7; }
-        .pk-img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; }
-        .pk-info { flex: 1; }
-        .pk-name { font-weight: bold; font-size: 16px; color: var(--text); }
-        .pk-meta { font-size: 12px; color: #999; margin-top: 2px; }
-
-        .final-actions { 
-            text-align: center; margin-top: auto; 
-            padding-bottom: max(30px, env(safe-area-inset-bottom)); /* 避開底部 */
-        }
-        .btn-final {
+        .pk-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; background: #eee; }
+        
+        .final-actions { text-align: center; margin-top: auto; padding-bottom: max(30px, env(safe-area-inset-bottom)); }
+        .btn-main {
             background: var(--primary); color: white; border: none; padding: 15px 40px;
             border-radius: 30px; font-size: 16px; font-weight: bold; width: 100%;
-            box-shadow: 0 5px 15px rgba(122, 156, 165, 0.3);
-        }
-        .btn-random-pick {
-            background: white; color: var(--secondary); border: 2px solid var(--secondary);
-            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(122, 156, 165, 0.3); text-decoration: none; display: inline-flex; justify-content: center; align-items: center;
         }
 
-        /* 成功畫面 */
-        .success-overlay {
-            position: fixed; inset: 0; background: white; z-index: 100;
-            display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px;
-        }
-        .success-overlay.show { display: flex; animation: fadeIn 0.5s; }
-        .final-img { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; margin-bottom: 25px; box-shadow: var(--shadow); border: 5px solid white; }
-        
-        /* 快速篩選丸 */
-        .quick-actions { margin-top: 10px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        .quick-actions::-webkit-scrollbar { display: none; }
-        .chip-btn { white-space: nowrap; padding: 6px 12px; border-radius: 15px; border: 1px solid #E0E0E0; background: white; color: #888; font-size: 12px; flex-shrink: 0; }
-
-        /* Loading */
-        .loading-screen { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
-        .loading-screen.hide { opacity: 0; pointer-events: none; }
+        .final-img-big { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; box-shadow: var(--shadow); border: 5px solid white; display: block; }
 
         @keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -158,8 +185,33 @@
 </head>
 <body>
 
-    <div id="loading" class="loading-screen">
-        <i class="fas fa-utensils fa-spin" style="font-size:40px; color:var(--primary);"></i>
+    <div id="onboarding" class="onboarding-layer">
+        <div class="q-step active" id="step1">
+            <div class="q-title">今天預算如何？</div>
+            <div class="option-grid">
+                <div class="option-btn" onclick="nextStep(1, 'price', 1)">💰 便宜簡單吃</div>
+                <div class="option-btn" onclick="nextStep(1, 'price', 2)">💵 一般聚餐價位</div>
+                <div class="option-btn" onclick="nextStep(1, 'price', 3)">💎 豪華大餐</div>
+                <div class="option-btn" onclick="nextStep(1, 'price', 0)">🤷 沒差，看感覺</div>
+            </div>
+        </div>
+        <div class="q-step" id="step2">
+            <div class="q-title">現在餓嗎？</div>
+            <div class="option-grid">
+                <div class="option-btn" onclick="nextStep(2, 'heavy', false)">🥗 不太餓，輕食就好</div>
+                <div class="option-btn" onclick="nextStep(2, 'heavy', true)">🍖 超餓，我要吃飽</div>
+                <div class="option-btn" onclick="nextStep(2, 'heavy', null)">🤷 都可以</div>
+            </div>
+        </div>
+        <div class="q-step" id="step3">
+            <div class="q-title">今天心情/天氣？</div>
+            <div class="option-grid">
+                <div class="option-btn" onclick="startGame('soup')">🥣 想喝熱湯</div>
+                <div class="option-btn" onclick="startGame('dry')">🥢 想吃乾的</div>
+                <div class="option-btn" onclick="startGame('spicy')">🌶️ 想吃辣！</div>
+                <div class="option-btn" onclick="startGame('all')">🌈 沒想法，給我驚喜</div>
+            </div>
+        </div>
     </div>
 
     <div class="header">
@@ -168,129 +220,175 @@
     </div>
 
     <div class="main-stage">
-        
         <div id="browseMode" class="browse-mode">
             <div id="cardContainer" class="food-card">
+                
                 <div class="food-img-box">
-                    <img id="fImg" class="food-img" src="">
+                    <img id="fImg" class="food-img" src="" onerror="this.src='https://via.placeholder.com/400x300/e0e0e0/888888?text=Delicious';">
                     <span id="fPrice" class="price-badge">$$</span>
                 </div>
+
                 <div class="food-content">
                     <div id="fName" class="food-title">載入中...</div>
                     <div class="tag-row" id="fTags"></div>
                     <div id="fDesc" class="food-desc"></div>
                     
-                    <div style="font-size:12px; font-weight:bold; color:var(--primary); margin-bottom:5px;">過濾掉：</div>
-                    <div class="quick-actions">
-                        <div class="chip-btn" onclick="filterOut('cat')">🚫 這類先不要</div>
-                        <div class="chip-btn" onclick="filterOut('heavy')">🥦 太油膩</div>
-                        <div class="chip-btn" onclick="filterOut('spicy')">🌶️ 不吃辣</div>
-                        <div class="chip-btn" onclick="filterOut('expensive')">💸 太貴</div>
+                    <div class="filter-section">
+                        <div class="filter-title">不想吃這個？快速過濾：</div>
+                        <div class="quick-actions">
+                            <div class="chip-btn" onclick="filterOut('cat')">🚫 這類先不要</div>
+                            <div class="chip-btn" onclick="filterOut('heavy')">🥦 太油膩</div>
+                            <div class="chip-btn" onclick="filterOut('spicy')">🌶️ 不吃辣</div>
+                            <div class="chip-btn" onclick="filterOut('expensive')">💸 太貴</div>
+                            <div class="chip-btn" onclick="filterOut('smell')">🤢 味道太重</div>
+                            <div class="chip-btn" onclick="filterOut('big')">🦕 份量太多</div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="bottom-controls">
-                <button class="big-btn btn-pass" onclick="nextCard()">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div style="font-size:12px; color:#999; text-align:center;">
-                    換一張<br>Next
-                </div>
-                <button class="big-btn btn-keep" onclick="addToWishlist()">
-                    <i class="fas fa-heart"></i>
-                </button>
-            </div>
         </div>
-
-        <div id="shortlistMode" class="shortlist-mode">
-            <div class="mode-title">決選擂台 👑</div>
-            <div class="mode-desc">這 3 家你都想吃，選一家最想去的！</div>
-            <div id="pkList" class="pk-container"></div>
-            <div class="final-actions">
-                <button class="btn-final btn-random-pick" onclick="randomPickFinal()">
-                    🎲 幫我選！
-                </button>
-            </div>
-        </div>
-
     </div>
 
-    <div id="successOverlay" class="success-overlay">
-        <img id="finalImg" class="final-img">
+    <div class="bottom-controls">
+        <button class="big-btn btn-pass" onclick="nextCard()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div style="font-size:12px; color:#999; text-align:center;">
+            換一張<br>Next
+        </div>
+        <button class="big-btn btn-keep" onclick="addToWishlist()">
+            <i class="fas fa-heart"></i>
+        </button>
+    </div>
+
+    <div id="shortlistMode" class="full-screen-mode">
+        <h2 style="text-align:center; color:var(--primary); margin-bottom:10px;">決選擂台 👑</h2>
+        <p style="text-align:center; color:#999; font-size:13px; margin-bottom:20px;">選一家最想去的！</p>
+        <div id="pkList" class="pk-container"></div>
+        <div class="final-actions">
+            <button class="btn-main" style="background:white; color:var(--secondary); border:2px solid var(--secondary);" onclick="randomPickFinal()">
+                🎲 幫我選！
+            </button>
+        </div>
+    </div>
+
+    <div id="successOverlay" class="full-screen-mode" style="justify-content:center; text-align:center;">
+        <img id="finalImg" class="final-img-big" onerror="this.src='https://via.placeholder.com/400x300/e0e0e0/888888?text=Delicious';">
         <h2 style="color:var(--primary); margin-bottom:5px;">今晚就吃這個！</h2>
-        <h1 id="finalName" style="font-size:32px; margin:0 0 20px 0;"></h1>
-        <p style="color:#666;">別再猶豫了，現在就出發！</p>
-        <a id="mapLink" href="#" target="_blank" class="btn-final" style="display:flex; align-items:center; justify-content:center; text-decoration:none;">
+        <h1 id="finalName" style="font-size:30px; margin:0 0 20px 0;"></h1>
+        <p style="color:#666;">別再猶豫了，出發吧！</p>
+        
+        <a id="mapLink" href="#" target="_blank" class="btn-main">
             <i class="fas fa-location-arrow" style="margin-right:10px;"></i> Google Maps 導航
         </a>
         <div style="margin-top:30px; color:#999; text-decoration:underline; cursor:pointer;" onclick="location.reload()">重玩一次</div>
     </div>
 
     <script>
-        // === 資料庫 (50+ 完整版) ===
+        // === 1. 超完整資料庫 (50+ 選項) - 含 smell, big 屬性 ===
         const database = [
-            { name: "滷肉飯", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1627207644063-267926715201?w=600", desc: "國民美食，肥瘦滷汁淋在白飯上，簡單卻銷魂。" },
-            { name: "紅燒牛肉麵", cat: "台式", price: 2, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "濃郁湯頭配上大塊牛肉，台灣之光。" },
-            { name: "乾麵 + 滷味", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600", desc: "簡單的麻醬或炸醬麵，配點豆干海帶。" },
-            { name: "大雞排 + 珍奶", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "炸得金黃酥脆，罪惡感與幸福感同時爆表。" },
-            { name: "脆皮臭豆腐", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1583069358212-04e8d89ce58a?w=600", desc: "外酥內嫩，塞入泡菜一口咬下，絕配。" },
-            { name: "台式熱炒", cat: "台式", price: 2, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1551249721-a4b51cc13075?w=600", desc: "宮保雞丁、鳳梨蝦球，配啤酒最對味。" },
-            { name: "火雞肉飯", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1606525437679-037aca74a3e9?w=600", desc: "鮮嫩火雞肉絲淋上雞油，香氣四溢。" },
-            { name: "溫州大餛飩", cat: "台式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1596458397223-93c66f25459b?w=600", desc: "皮薄餡大，加點紅油抄手更過癮。" },
-            { name: "涼麵", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1594975519808-8df04405362a?w=600", desc: "麻醬香氣配上小黃瓜，夏天必吃組合。" },
-            { name: "水餃 / 鍋貼", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600", desc: "皮薄餡多，沾醬油醋最對味。" },
-            { name: "日式拉麵", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600", desc: "濃郁湯頭配上勁道麵條，暖心首選。" },
-            { name: "迴轉壽司", cat: "日式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc: "清爽無負擔，想吃多少拿多少。" },
-            { name: "炸豬排定食", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1616428467478-43d969248232?w=600", desc: "外酥內嫩的厚切豬排，配上高麗菜絲。" },
-            { name: "牛丼", cat: "日式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1554502078-ef0fc409efce?w=600", desc: "大碗肉片鋪在飯上，快速滿足。" },
-            { name: "日式咖哩", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1604152135912-04a022e23696?w=600", desc: "濃郁甘甜的日式咖哩，大人小孩都愛。" },
-            { name: "烏龍麵", cat: "日式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=600", desc: "Q彈滑順的麵條，配上炸物天婦羅。" },
-            { name: "日式燒肉", cat: "日式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1592685829283-7c0bb77df3c9?w=600", desc: "享受自己動手烤肉的樂趣，肉食者天堂。" },
-            { name: "居酒屋串燒", cat: "日式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=600", desc: "下班後的小酌時光，炭火香氣迷人。" },
-            { name: "生魚片丼飯", cat: "日式", price: 3, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1562436260-8c9216eeb703?w=600", desc: "滿滿的新鮮海鮮鋪在醋飯上，豪華享受。" },
-            { name: "天婦羅丼", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1560155016-16e6c1cc3e53?w=600", desc: "豪邁的炸蝦與蔬菜，淋上鹹甜醬汁。" },
-            { name: "麥當勞", cat: "速食", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600", desc: "熟悉的味道，薯條是本體。" },
-            { name: "肯德基 KFC", cat: "速食", price: 1, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "想吃炸雞和蛋塔的時候，這是不二之選。" },
-            { name: "披薩 Pizza", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600", desc: "牽絲的起司與酥脆餅皮，聚餐首選。" },
-            { name: "Subway", cat: "西式", price: 1, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1509722747741-092075b55909?w=600", desc: "滿滿蔬菜的潛艇堡，健康又方便。" },
-            { name: "義大利麵", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600", desc: "奶油、青醬或番茄，口味多變。" },
-            { name: "美式早午餐", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1533089862017-5614ecb3f2f2?w=600", desc: "班尼迪克蛋配咖啡，悠閒的一餐。" },
-            { name: "牛排館", cat: "西式", price: 3, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600", desc: "慶祝節日或犒賞自己的好選擇。" },
-            { name: "美式漢堡", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600", desc: "手工肉排多汁厚實，大口咬下超滿足。" },
-            { name: "健康餐盒", cat: "健康", price: 2, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc: "水煮低卡，增肌減脂首選。" },
-            { name: "麻辣火鍋", cat: "火鍋", price: 3, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1582236357997-6a422a57ae22?w=600", desc: "香辣過癮，適合重口味與聚餐。" },
-            { name: "個人小火鍋", cat: "火鍋", price: 1, heavy: true, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1547592166-23acbe34071b?w=600", desc: "一個人也能暖暖吃鍋，CP值高。" },
-            { name: "韓式炸雞", cat: "韓式", price: 2, heavy: true, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "裹滿甜辣醬汁的酥脆炸雞，配醃蘿蔔。" },
-            { name: "韓式泡菜鍋", cat: "韓式", price: 2, heavy: false, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "酸辣開胃，配上一碗白飯剛剛好。" },
-            { name: "石鍋拌飯", cat: "韓式", price: 2, heavy: false, soup: false, spicy: true, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc: "酥脆鍋巴配上豐富配菜，拌在一起吃。" },
-            { name: "泰式料理", cat: "泰式", price: 2, heavy: false, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600", desc: "酸辣開胃，月亮蝦餅必點。" },
-            { name: "越南河粉", cat: "越式", price: 1, heavy: false, soup: true, spicy: false, img: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600", desc: "清甜湯頭配上滑順河粉，清爽選擇。" },
-            { name: "小籠包", cat: "中式", price: 3, heavy: false, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600", desc: "皮薄汁多，搭配薑絲醋一口咬下。" },
-            { name: "港式飲茶", cat: "港式", price: 2, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1541696490865-e6f720e9c195?w=600", desc: "燒賣、蝦餃、叉燒包，樣樣都來一點。" },
-            { name: "燒臘便當", cat: "港式", price: 1, heavy: true, soup: false, spicy: false, img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600", desc: "油雞、燒鴨、叉燒，配上蔥油最下飯。" },
-            { name: "印度咖哩", cat: "異國", price: 2, heavy: true, soup: true, spicy: true, img: "https://images.unsplash.com/photo-1604152135912-04a022e23696?w=600", desc: "香料味濃郁，配烤餅一絕。" }
+            // 台式
+            { name: "滷肉飯", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1627207644063-267926715201?w=600", desc: "國民美食，肥瘦滷汁淋在白飯上，簡單卻銷魂。" },
+            { name: "紅燒牛肉麵", cat: "台式", price: 2, heavy: true, soup: true, spicy: true, smell: false, big: false, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "濃郁湯頭配上大塊牛肉，台灣之光。" },
+            { name: "大雞排", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, smell: true, big: true, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "炸得金黃酥脆，罪惡感與幸福感同時爆表。" },
+            { name: "脆皮臭豆腐", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, smell: true, big: false, img: "https://images.unsplash.com/photo-1583069358212-04e8d89ce58a?w=600", desc: "外酥內嫩，塞入泡菜一口咬下，絕配。" },
+            { name: "麻辣鴨血", cat: "台式", price: 1, heavy: true, soup: true, spicy: true, smell: true, big: false, img: "https://images.unsplash.com/photo-1541280910158-c4e34faf2c00?w=600", desc: "滑嫩鴨血吸滿辣湯，入味又開胃。" },
+            { name: "藥燉排骨", cat: "台式", price: 2, heavy: false, soup: true, spicy: false, smell: true, big: false, img: "https://images.unsplash.com/photo-1609770502127-6c236e76556d?w=600", desc: "中藥香氣四溢，冬天溫補首選。" },
+            { name: "清粥小菜", cat: "台式", price: 2, heavy: false, soup: true, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1516684732738-16fa2021c179?w=600", desc: "清淡白粥配上多樣小菜，暖胃又豐富。" },
+            { name: "台式熱炒", cat: "台式", price: 2, heavy: true, soup: false, spicy: true, smell: true, big: true, img: "https://images.unsplash.com/photo-1551249721-a4b51cc13075?w=600", desc: "宮保雞丁、鳳梨蝦球，配啤酒最對味。" },
+            { name: "蚵仔煎", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=600", desc: "粉漿Q彈，鮮蚵飽滿，淋上甜辣醬。" },
+            { name: "潤餅捲", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1609180746973-20739c381c8b?w=600", desc: "滿滿蔬菜與花生粉，清爽又有飽足感。" },
+            { name: "乾麵+滷味", cat: "台式", price: 1, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600", desc: "簡單的麵食配上豆乾海帶，日常美味。" },
+            { name: "火雞肉飯", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1606525437679-037aca74a3e9?w=600", desc: "鮮嫩火雞肉絲淋上雞油，香氣四溢。" },
+            { name: "大腸包小腸", cat: "台式", price: 1, heavy: true, soup: false, spicy: false, smell: true, big: false, img: "https://images.unsplash.com/photo-1574484284002-952d92456975?w=600", desc: "糯米腸包香腸，配上蒜頭最對味。" },
+            
+            // 日式
+            { name: "日式拉麵", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600", desc: "濃郁豚骨湯頭，配上勁道麵條。" },
+            { name: "迴轉壽司", cat: "日式", price: 2, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600", desc: "清爽無負擔，想吃多少拿多少。" },
+            { name: "炸豬排定食", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, smell: false, big: true, img: "https://images.unsplash.com/photo-1616428467478-43d969248232?w=600", desc: "外酥內嫩的厚切豬排，高麗菜絲解膩。" },
+            { name: "牛丼", cat: "日式", price: 1, heavy: true, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1554502078-ef0fc409efce?w=600", desc: "大碗肉片鋪在飯上，快速滿足。" },
+            { name: "日式咖哩", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, smell: true, big: false, img: "https://images.unsplash.com/photo-1604152135912-04a022e23696?w=600", desc: "濃郁甘甜的日式咖哩，大人小孩都愛。" },
+            { name: "日式燒肉", cat: "日式", price: 3, heavy: true, soup: false, spicy: false, smell: true, big: true, img: "https://images.unsplash.com/photo-1592685829283-7c0bb77df3c9?w=600", desc: "自己烤肉的樂趣，肉食者天堂。" },
+            { name: "居酒屋串燒", cat: "日式", price: 3, heavy: true, soup: false, spicy: false, smell: true, big: false, img: "https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=600", desc: "炭火香氣迷人，下班小酌首選。" },
+            { name: "生魚片丼", cat: "日式", price: 3, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1562436260-8c9216eeb703?w=600", desc: "豪華海鮮鋪滿醋飯，鮮味十足。" },
+            { name: "天婦羅丼", cat: "日式", price: 2, heavy: true, soup: false, spicy: false, smell: false, big: true, img: "https://images.unsplash.com/photo-1560155016-16e6c1cc3e53?w=600", desc: "豪邁炸蝦與蔬菜，淋上鹹甜醬汁。" },
+            { name: "烏龍麵", cat: "日式", price: 1, heavy: false, soup: true, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=600", desc: "Q彈滑順麵條，配上清爽高湯。" },
+
+            // 火鍋
+            { name: "麻辣火鍋", cat: "火鍋", price: 3, heavy: true, soup: true, spicy: true, smell: true, big: true, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "香辣過癮，適合重口味與大食量。" },
+            { name: "個人小火鍋", cat: "火鍋", price: 1, heavy: true, soup: true, spicy: false, smell: true, big: false, img: "https://images.unsplash.com/photo-1547592166-23acbe34071b?w=600", desc: "一個人也能暖暖吃鍋，CP值高。" },
+            { name: "壽喜燒", cat: "日式", price: 2, heavy: true, soup: true, spicy: false, smell: false, big: true, img: "https://images.unsplash.com/photo-1584213123849-5f1118335914?w=600", desc: "鹹甜醬汁涮肉片，沾蛋液超滑順。" },
+            { name: "薑母鴨", cat: "台式", price: 2, heavy: true, soup: true, spicy: false, smell: true, big: true, img: "https://images.unsplash.com/photo-1616428467478-43d969248232?w=600", desc: "冬天進補首選，炭火與麻油香氣。" },
+
+            // 西式/美式
+            { name: "美式漢堡", cat: "美式", price: 2, heavy: true, soup: false, spicy: false, smell: false, big: true, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600", desc: "厚實肉排多汁，大口咬下超滿足。" },
+            { name: "麥當勞", cat: "速食", price: 1, heavy: true, soup: false, spicy: false, smell: true, big: false, img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600", desc: "快速方便，薯條是靈魂。" },
+            { name: "肯德基 KFC", cat: "速食", price: 1, heavy: true, soup: false, spicy: true, smell: true, big: false, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "想吃炸雞和蛋塔的不二之選。" },
+            { name: "披薩 Pizza", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, smell: true, big: true, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600", desc: "牽絲起司與酥脆餅皮，適合分享。" },
+            { name: "牛排", cat: "西式", price: 3, heavy: true, soup: false, spicy: false, smell: false, big: true, img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600", desc: "慶祝節日或犒賞自己的好選擇。" },
+            { name: "Subway", cat: "西式", price: 1, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1509722747741-092075b55909?w=600", desc: "滿滿蔬菜潛艇堡，健康方便。" },
+            { name: "義大利麵", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=600", desc: "奶油、青醬或番茄，口味多變。" },
+            { name: "早午餐 Brunch", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1533089862017-5614ecb3f2f2?w=600", desc: "班尼迪克蛋配咖啡，悠閒一餐。" },
+            { name: "凱薩沙拉", cat: "西式", price: 2, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc: "大量生菜配雞肉，輕盈無負擔。" },
+            { name: "義式燉飯", cat: "西式", price: 2, heavy: true, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=600", desc: "吸滿高湯精華的米粒，濃郁飽足。" },
+
+            // 異國
+            { name: "韓式炸雞", cat: "韓式", price: 2, heavy: true, soup: false, spicy: true, smell: true, big: true, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600", desc: "甜辣醬汁裹酥脆炸雞，吮指回味。" },
+            { name: "韓式泡菜鍋", cat: "韓式", price: 2, heavy: false, soup: true, spicy: true, smell: true, big: false, img: "https://images.unsplash.com/photo-1596458397260-255551c09534?w=600", desc: "酸辣開胃，配白飯剛剛好。" },
+            { name: "泰式料理", cat: "泰式", price: 2, heavy: false, soup: true, spicy: true, smell: true, big: false, img: "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=600", desc: "酸辣開胃，月亮蝦餅必點。" },
+            { name: "越南河粉", cat: "越式", price: 1, heavy: false, soup: true, spicy: false, smell: true, big: false, img: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600", desc: "清甜湯頭配滑順河粉，加點檸檬。" },
+            { name: "港式飲茶", cat: "港式", price: 2, heavy: true, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1541696490865-e6f720e9c195?w=600", desc: "燒賣、蝦餃、叉燒包，樣樣來一點。" },
+            { name: "印度咖哩", cat: "異國", price: 2, heavy: true, soup: true, spicy: true, smell: true, big: false, img: "https://images.unsplash.com/photo-1604152135912-04a022e23696?w=600", desc: "香料味濃郁，配烤餅一絕。" },
+            { name: "健康餐盒", cat: "健康", price: 2, heavy: false, soup: false, spicy: false, smell: false, big: false, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600", desc: "水煮低卡，增肌減脂首選。" }
         ];
 
         // === 邏輯區 ===
-        let pool = [...database];
+        let userPref = { price: 0, heavy: null }; 
+        let pool = [];
         let currentItem = null;
-        let wishlist = []; 
+        let wishlist = [];
         const MAX_WISH = 3;
 
-        // 初始化
-        setTimeout(() => {
-            document.getElementById('loading').classList.add('hide');
-            renderCard();
-        }, 1000);
+        // 1. 問卷邏輯 (Onboarding)
+        function nextStep(current, key, value) {
+            userPref[key] = value;
+            document.getElementById(`step${current}`).classList.remove('active');
+            document.getElementById(`step${current+1}`).classList.add('active');
+        }
 
-        function renderCard() {
+        // 2. 開始篩選 (初始化)
+        function startGame(type) {
+            // 隱藏問卷
+            document.getElementById('onboarding').classList.add('hidden');
+            
+            // 根據問卷篩選 Pool
+            pool = database.filter(item => {
+                if (userPref.price !== 0 && item.price !== userPref.price) return false;
+                if (userPref.heavy !== null && item.heavy !== userPref.heavy) return false;
+                
+                if (type === 'soup' && !item.soup) return false;
+                if (type === 'dry' && item.soup) return false;
+                if (type === 'spicy' && !item.spicy) return false;
+                
+                return true;
+            });
+
             if (pool.length === 0) {
-                alert("選項都看完了！重新洗牌...");
+                alert("條件太嚴苛，幫你放寬標準！");
                 pool = [...database];
             }
 
-            // 隨機抽一張
+            renderCard();
+        }
+
+        // 3. 渲染卡片
+        function renderCard() {
+            if (pool.length === 0) {
+                alert("選項看完了！重新洗牌...");
+                pool = [...database];
+            }
+
+            // 隨機抽
             const idx = Math.floor(Math.random() * pool.length);
             currentItem = pool[idx];
 
@@ -299,46 +397,39 @@
             document.getElementById('fName').innerText = currentItem.name;
             document.getElementById('fDesc').innerText = currentItem.desc;
             
-            // 標籤
+            // 標籤生成
             let tagsHtml = `<span class="info-tag">${currentItem.cat}</span>`;
             if(currentItem.heavy) tagsHtml += `<span class="info-tag">飽足</span>`;
-            if(!currentItem.heavy) tagsHtml += `<span class="info-tag">輕食</span>`;
+            else tagsHtml += `<span class="info-tag">輕食</span>`;
             if(currentItem.soup) tagsHtml += `<span class="info-tag">有湯</span>`;
-            if(currentItem.spicy) tagsHtml += `<span class="info-tag">辣</span>`;
+            
             document.getElementById('fTags').innerHTML = tagsHtml;
 
-            // 價格
+            // 價格星星
             let pStr = "";
             for(let i=0; i<3; i++) pStr += i < currentItem.price ? "★" : "☆";
             document.getElementById('fPrice').innerText = pStr;
 
-            // 觸發動畫
+            // 動畫重置
             const card = document.getElementById('cardContainer');
             card.style.animation = 'none';
             card.offsetHeight; 
             card.style.animation = 'popIn 0.3s';
         }
 
-        // 換一張 (不喜歡)
-        function nextCard() {
-            renderCard();
-        }
+        // 4. 按鈕操作
+        function nextCard() { renderCard(); }
 
-        // 加入候選 (喜歡)
         function addToWishlist() {
             if (wishlist.some(i => i.name === currentItem.name)) {
                 alert("已經在清單裡囉！");
                 nextCard();
                 return;
             }
-
             wishlist.push(currentItem);
             updateCounter();
+            pool = pool.filter(i => i.name !== currentItem.name); // 移除已選
 
-            // 從 pool 移除
-            pool = pool.filter(i => i.name !== currentItem.name);
-
-            // 檢查是否集滿
             if (wishlist.length >= MAX_WISH) {
                 showShortlist();
             } else {
@@ -353,23 +444,21 @@
             setTimeout(() => counter.classList.remove('bump'), 200);
         }
 
-        // 過濾器
+        // 5. 過濾邏輯 (新增 smell, big)
         function filterOut(reason) {
             pool = pool.filter(i => i.name !== currentItem.name);
 
-            if (reason === 'cat') {
-                pool = pool.filter(i => i.cat !== currentItem.cat);
-            } else if (reason === 'heavy') {
-                pool = pool.filter(i => !i.heavy);
-            } else if (reason === 'spicy') {
-                pool = pool.filter(i => !i.spicy);
-            } else if (reason === 'expensive') {
-                pool = pool.filter(i => i.price < currentItem.price);
-            }
+            if (reason === 'cat') pool = pool.filter(i => i.cat !== currentItem.cat);
+            if (reason === 'heavy') pool = pool.filter(i => !i.heavy);
+            if (reason === 'spicy') pool = pool.filter(i => !i.spicy);
+            if (reason === 'expensive') pool = pool.filter(i => i.price < currentItem.price);
+            if (reason === 'smell') pool = pool.filter(i => !i.smell); // 不吃臭的
+            if (reason === 'big') pool = pool.filter(i => !i.big); // 不吃太大份的
+
             renderCard();
         }
 
-        // === 決選模式 ===
+        // 6. 決選模式
         function showShortlist() {
             document.getElementById('browseMode').style.display = 'none';
             document.getElementById('shortlistMode').classList.add('show');
@@ -377,7 +466,7 @@
             const container = document.getElementById('pkList');
             container.innerHTML = wishlist.map((item, idx) => `
                 <div class="pk-card" onclick="finalDecide(${idx})">
-                    <img src="${item.img}" class="pk-img">
+                    <img src="${item.img}" class="pk-img" onerror="this.src='https://via.placeholder.com/60'">
                     <div class="pk-info">
                         <div class="pk-name">${item.name}</div>
                         <div class="pk-meta">${item.desc}</div>
@@ -387,12 +476,10 @@
             `).join('');
         }
 
-        // 最終選擇 (手動點選)
         function finalDecide(idx) {
             showSuccess(wishlist[idx]);
         }
 
-        // 幫我選 (隨機)
         function randomPickFinal() {
             const idx = Math.floor(Math.random() * wishlist.length);
             let count = 0;
@@ -412,11 +499,9 @@
             document.getElementById('successOverlay').classList.add('show');
             document.getElementById('finalImg').src = item.img;
             document.getElementById('finalName').innerText = item.name;
-            
             const q = encodeURIComponent(item.name + " 附近");
-            document.getElementById('mapLink').href = `https://www.google.com/maps/search/?api=1\&query=Naples+Airport{q}`;
+            document.getElementById('mapLink').href = `https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Sorrento_Piazza_Tasso.jpg/800px-Sorrento_Piazza_Tasso.jpg,https://www.google.com/maps/search/?api=1&query=Piazza+Tasso+Sorrento,試試檸檬酒{q}`;
         }
-
     </script>
 </body>
 </html>
