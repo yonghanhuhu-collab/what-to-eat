@@ -307,15 +307,17 @@
             { n: "燒仙草", t: ["甜點", "暖胃"], p: 1, f: ["soup", "light"], d: "冬天必喝", i: "grass_jelly" }
         ];
         
-        // 擴充數據到 100+
+        // 擴充數據到 100+ (圖片來源改為 AI 生成以修正準確度)
         const fullDB = db.map(item => ({
             name: item.n,
             tags: item.t,
             price: item.p,
             features: item.f,
             desc: item.d,
-            // 使用 LoremFlickr 替代已掛掉的 Unsplash
-            img: `https://loremflickr.com/500/400/${item.i},food`
+            // 修改重點：改用 Pollinations AI 生成圖片
+            // 邏輯：使用 item.i (英文關鍵字) + "delicious food" 作為提示詞
+            // replace(/_/g, ' ') 是把關鍵字裡的底線換成空白 (如 bao_bun -> bao bun) 讓 AI 看得懂
+            img: `https://image.pollinations.ai/prompt/delicious ${item.i.replace(/_/g, ' ')} food photo close up?width=500&height=400&nologo=true&model=flux`
         }));
 
         let state = {
