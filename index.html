@@ -67,7 +67,7 @@
         .mode-btn.morning { border: 3px solid #FFD93D; background: linear-gradient(to bottom right, #fff, #FFFDE7); }
         .mode-btn.night { border: 3px solid #5F7D8B; background: linear-gradient(to bottom right, #fff, #ECEFF1); }
 
-        /* 卡片設計 - 重構圖片載入層 */
+        /* 卡片設計 - 圖片載入層 */
         .card-container {
             width: 100%; max-width: 340px; aspect-ratio: 3/4.5;
             position: relative; perspective: 1000px; margin: auto 0;
@@ -82,13 +82,11 @@
             height: 55%; width: 100%; background-color: #f0f0f0;
             position: relative; overflow: hidden;
         }
-        /* 真正的圖片層 */
         .card-img-layer {
             width: 100%; height: 100%;
             background-size: cover; background-position: center;
-            opacity: 0; transition: opacity 0.4s ease; /* 預設隱藏，載入好才淡入 */
+            opacity: 0; transition: opacity 0.4s ease; /* 載入後淡入 */
         }
-        /* 搜尋中的文字層 - 絕對定位在圖片上 */
         .loading-text {
             position: absolute; inset: 0;
             display: flex; align-items: center; justify-content: center;
@@ -124,7 +122,7 @@
         .btn-pass { color: #ccc; }
         .btn-like { color: var(--primary); background: #FFF5F5; }
 
-        /* 結果頁調整 */
+        .podium-list { width: 100%; max-width: 360px; }
         .podium-item {
             background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px;
             display: flex; align-items: center; gap: 15px; cursor: pointer;
@@ -239,11 +237,7 @@
     </div>
 
     <script>
-    // [資料庫升級] 
-    // n: 名稱
-    // k: 強制搜尋關鍵字 (解決星巴克變建築物、台式小吃搜不到的問題)
-    // t: 標籤, p: 價格, f: 篩選tag, d: 描述
-    
+    // [資料庫] n:名稱, k:強制搜尋關鍵字, t:標籤, p:價格, f:篩選, d:描述
     const dinnerDB = [
         { n: "豚骨拉麵", k: "ramen", t: ["日式", "有湯"], p: 2, f: ["soup", "greasy", "full"], d: "濃郁湯頭，暖胃首選" },
         { n: "日式沾麵", k: "tsukemen", t: ["日式", "Q彈"], p: 2, f: ["dry", "full"], d: "濃厚醬汁吸附麵條" },
@@ -342,7 +336,7 @@
         currentIndex: 0
     };
 
-    // [備用分類圖片] 當維基百科真的搜不到時，用這些，絕對不破圖，也不會全是沙拉
+    // [備用分類圖片] 當維基百科真的搜不到且超時3秒時，用這些
     const categoryBackups = {
         'noodle': 'https://images.unsplash.com/photo-1569937745351-1fc996f05f98?auto=format&fit=crop&w=600&q=60', 
         'rice': 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=600&q=60',   
@@ -355,34 +349,36 @@
         'default': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=60' 
     };
 
-    // [核心搜尋功能] Wiki + 分類備用
+    // [核心搜尋功能] Wiki + Unsplash + 分類備用
     async function searchRealImage(item) {
         // 1. 優先嘗試維基百科
         try {
-            // 如果有強制關鍵字 k (例如麥當勞 -> Hamburger)，優先用 k，否則用 n (名稱)
-            const keyword = item.n; 
+            const keyword = item.k || item.n; // 如果有強制關鍵字 k (例如麥當勞 -> Hamburger)，優先用 k
             const wikiUrl = `https://zh.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&titles=${keyword}&pithumbsize=500&origin=*`;
             const res = await fetch(wikiUrl);
             const data = await res.json();
             const pages = data.query.pages;
             const pageId = Object.keys(pages)[0];
             
-            // 檢查維基百科是否有圖，且不是 .svg (SVG 通常是地圖或 logo)
             if (pageId !== "-1" && pages[pageId].thumbnail) {
                 const url = pages[pageId].thumbnail.source;
                 if (!url.endsWith('.svg')) return url;
             }
         } catch (e) {
-            console.log("Wiki failed, fallback...");
+            console.log("Wiki failed");
         }
 
-        // 2. 如果維基百科失敗，使用英文關鍵字去 Unsplash 找 (更準確)
-        // 為了避免建築物，我們在 DB 裡設了 k (Keyword)
+        // 2. 如果維基百科失敗，使用英文關鍵字去 Unsplash 找
         if (item.k) {
             return `https://source.unsplash.com/600x400/?${item.k}`;
         }
+        
+        // 3. 還是沒有，回傳 null，交給 getSmartFallback 處理
+        return null;
+    }
 
-        // 3. 最後防線：根據關鍵字給分類圖 (絕對不會只有沙拉)
+    // [輔助函式] 根據名稱取得分類備用圖 (取代單一沙拉圖)
+    function getSmartFallback(item) {
         const name = item.n;
         const tags = item.t.join(' ');
         
@@ -454,7 +450,7 @@
         state.currentIndex = 0;
     }
 
-    // [圖片載入與渲染] 確保文字正確消失
+    // [圖片載入與渲染] 加入 3 秒強制止損機制
     async function renderCard() {
         const container = document.getElementById('cardStack');
         container.innerHTML = '';
@@ -497,25 +493,49 @@
         `;
         container.appendChild(card);
 
-        // 開始找圖
+        // 準備備用圖 (根據類別，不再是死板沙拉)
+        const fallbackUrl = getSmartFallback(item);
+
+        // 定義顯示圖片的函式 (包含清除 Loading 文字)
+        const showImage = (url) => {
+            const layer = document.getElementById('cardImgLayer');
+            const loader = document.getElementById('loadingText');
+            if(layer && loader) {
+                layer.style.backgroundImage = `url('${url}')`;
+                layer.style.opacity = '1';
+                loader.style.opacity = '0';
+                setTimeout(() => { if(loader) loader.style.display = 'none'; }, 300);
+            }
+        };
+
+        // 1. 設定 3 秒後強制顯示備用圖 (超時保險)
+        const timeoutId = setTimeout(() => {
+            console.log("Image load timed out, using smart fallback.");
+            showImage(fallbackUrl);
+        }, 3000); // 3000 毫秒 = 3 秒
+
+        // 2. 開始找圖
         let imgUrl = item.cachedUrl;
         if (!imgUrl) {
             imgUrl = await searchRealImage(item);
         }
-        item.finalImg = imgUrl; // 存起來
+        
+        // 3. 如果沒找到 (imgUrl 為 null)，直接用備用圖
+        if (!imgUrl) {
+            imgUrl = fallbackUrl;
+        }
+        item.finalImg = imgUrl;
 
-        // 圖片預載入邏輯：確保載完才顯示
+        // 4. 圖片預載
         const preloadImg = new Image();
         preloadImg.src = imgUrl;
         preloadImg.onload = () => {
-            const layer = document.getElementById('cardImgLayer');
-            const loader = document.getElementById('loadingText');
-            if(layer && loader) {
-                layer.style.backgroundImage = `url('${imgUrl}')`;
-                layer.style.opacity = '1'; // 淡入
-                loader.style.opacity = '0'; // 淡出文字
-                setTimeout(() => { loader.style.display = 'none'; }, 300); // 移除 DOM
-            }
+            clearTimeout(timeoutId); // 成功載入，取消 3 秒倒數
+            showImage(imgUrl);
+        };
+        preloadImg.onerror = () => {
+            clearTimeout(timeoutId); // 載入失敗，取消倒數，直接顯示備用
+            showImage(fallbackUrl);
         };
 
         // 預載下一張
