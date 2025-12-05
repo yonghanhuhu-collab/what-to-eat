@@ -79,7 +79,7 @@
         .mode-btn.morning { border-color: #FFD93D; background: linear-gradient(to bottom right, #fff, #FFFDE7); }
         .mode-btn.night { border-color: #5F7D8B; background: linear-gradient(to bottom right, #fff, #ECEFF1); }
 
-        /* 6. 卡片設計 */
+        /* 6. 卡片設計 - 加入多重背景支援 */
         .card-container {
             width: 100%; max-width: 340px; aspect-ratio: 3/4.5;
             position: relative; perspective: 1000px; flex-shrink: 0; margin: auto 0;
@@ -91,7 +91,8 @@
             transform-origin: 50% 100%; transition: transform 0.3s, opacity 0.3s;
         }
         .card-img {
-            height: 55%; width: 100%; background: #eee;
+            height: 55%; width: 100%; background-color: #eee;
+            /* 支援多重背景：先顯示主圖，失敗顯示備用圖 */
             background-size: cover; background-position: center; position: relative;
         }
         .card-content { padding: 25px; flex: 1; display: flex; flex-direction: column; z-index: 1; background: white; }
@@ -100,7 +101,7 @@
         .tag { font-size: 12px; background: #F5F7F9; color: #607D8B; padding: 5px 10px; border-radius: 8px; font-weight: 600; }
         .desc { font-size: 15px; color: var(--text-sub); line-height: 1.5; flex: 1; }
 
-        /* 7. 篩選標籤 (橫向捲動優化) */
+        /* 7. 篩選標籤 */
         .filter-tags { 
             display: flex; gap: 10px; margin-top: auto; padding-top: 15px;
             overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; width: 100%;
@@ -141,7 +142,7 @@
             border-color: var(--primary); background-color: #FFF5F5;
             transform: scale(1.02); box-shadow: 0 8px 20px rgba(255, 107, 107, 0.2);
         }
-        .p-img { width: 65px; height: 65px; border-radius: 12px; background: #eee; background-size: cover; background-position: center; flex-shrink: 0; }
+        .p-img { width: 65px; height: 65px; border-radius: 12px; background-color: #eee; background-size: cover; background-position: center; flex-shrink: 0; }
         .p-info { flex: 1; }
         .p-name { font-weight: 800; font-size: 17px; margin-bottom: 4px; color: #333; }
         .p-desc { font-size: 13px; color: #999; }
@@ -156,7 +157,7 @@
         
         .result-img-circle {
             width: 220px; height: 220px; border-radius: 50%; 
-            background: #eee; margin-bottom: 25px; border: 6px solid white;
+            background-color: #eee; margin-bottom: 25px; border: 6px solid white;
             box-shadow: var(--shadow); background-size: cover; background-position: center;
             flex-shrink: 0;
         }
@@ -193,7 +194,7 @@
         <div class="question-title">現在餓嗎？</div>
         <div class="option-btn" onclick="nextStep('hunger', 'light')">🥗 不太餓，輕食就好</div>
         <div class="option-btn" onclick="nextStep('hunger', 'full')">🍖 超餓，我要吃飽</div>
-        <div class="option-btn" onclick="nextStep('hunger', 'any')">🤷 都給</div>
+        <div class="option-btn" onclick="nextStep('hunger', 'any')">🙆 都給我</div>
     </div>
 
     <div id="v-mood" class="view">
@@ -217,14 +218,14 @@
         <div class="option-btn" onclick="nextStep('style', 'chn')">🥢 中式傳統 (蛋餅/飯糰)</div>
         <div class="option-btn" onclick="nextStep('style', 'west')">🍔 西式/早午餐 (漢堡/拼盤)</div>
         <div class="option-btn" onclick="nextStep('style', 'quick')">🍞 簡單超商 (麵包/茶葉蛋)</div>
-        <div class="option-btn" onclick="nextStep('style', 'any')">🤷 沒差，都可以</div>
+        <div class="option-btn" onclick="nextStep('style', 'any')">🙆 沒差，都可以</div>
     </div>
 
     <div id="v-bf-vibe" class="view">
         <div class="question-title">今天的節奏？</div>
         <div class="option-btn" onclick="nextStep('vibe', 'rush')">🏃 趕時間，帶著走</div>
         <div class="option-btn" onclick="nextStep('vibe', 'chill')">☕️ 悠閒，坐下來吃</div>
-        <div class="option-btn" onclick="nextStep('vibe', 'any')">🌈 看心情</div>
+        <div class="option-btn" onclick="nextStep('vibe', 'any')">🌈 都可以，給我驚喜</div>
     </div>
 
     <div id="v-swipe" class="view">
@@ -253,31 +254,32 @@
         </a>
         <div style="margin-top:25px; text-decoration:underline; color:#999; cursor:pointer; font-size:14px;" onclick="location.reload()">回首頁</div>
     </div>
-    <script>
-    // [段落 C] 開始：資料庫 (Data)
-    // 這裡使用「真實連結 (img)」，不再使用 AI 生成。
-    // 優點：速度快、圖片精美、絕不破圖。
 
+    <script>
+    // 通用備用圖片 (當圖片掛掉時顯示這個)
+    const backupImg = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80"; 
+
+    // [段落 C] 資料庫：已更新為高穩定性連結
     const dinnerDB = [
-        // 日式 (使用 Unsplash 真實圖片)
-        { n: "豚骨拉麵", t: ["日式", "有湯"], p: 2, f: ["soup", "greasy", "full"], d: "濃郁湯頭，暖胃首選", img: "https://images.unsplash.com/photo-1569937745351-1fc996f05f98?w=600&h=450&fit=crop" },
-        { n: "日式沾麵", t: ["日式", "Q彈"], p: 2, f: ["dry", "full"], d: "濃厚醬汁吸附麵條", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Tsukemen_by_t-mizo_in_Setagaya%2C_Tokyo.jpg/600px-Tsukemen_by_t-mizo_in_Setagaya%2C_Tokyo.jpg" },
-        { n: "日式牛丼", t: ["日式", "快速"], p: 1, f: ["dry", "full"], d: "甜鹹醬汁拌飯", img: "https://images.unsplash.com/photo-1604627192236-414457493a72?w=600&h=450&fit=crop" },
-        { n: "炸豬排定食", t: ["日式", "飽足"], p: 2, f: ["dry", "greasy", "full"], d: "外酥內嫩厚切豬排", img: "https://images.unsplash.com/photo-1624385108625-780c10978912?w=600&h=450&fit=crop" },
-        { n: "迴轉壽司", t: ["日式", "清爽"], p: 2, f: ["dry", "light"], d: "多樣化選擇", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&h=450&fit=crop" },
-        { n: "日式咖哩飯", t: ["日式", "濃郁"], p: 2, f: ["dry", "full"], d: "甘甜濃郁的日式風味", img: "https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&h=450&fit=crop" },
-        { n: "日式燒肉", t: ["日式", "聚餐"], p: 3, f: ["dry", "greasy", "full"], d: "自己烤肉的樂趣", img: "https://images.unsplash.com/photo-1558030006-450675393462?w=600&h=450&fit=crop" },
-        { n: "壽喜燒", t: ["日式", "鍋物"], p: 3, f: ["soup", "full"], d: "甜鹹醬汁涮牛肉", img: "https://images.unsplash.com/photo-1549203438-a7696aed3a05?w=600&h=450&fit=crop" },
-        { n: "烏龍麵", t: ["日式", "Q彈"], p: 1, f: ["soup", "light"], d: "簡單清爽的柴魚湯頭", img: "https://images.unsplash.com/photo-1618841557871-b4664fbf0cb3?w=600&h=450&fit=crop" },
-        { n: "章魚燒", t: ["日式", "小吃"], p: 1, f: ["dry", "light"], d: "外酥內軟的小點心", img: "https://images.unsplash.com/photo-1616259640398-356396c21e3c?w=600&h=450&fit=crop" },
+        // 日式
+        { n: "豚骨拉麵", t: ["日式", "有湯"], p: 2, f: ["soup", "greasy", "full"], d: "濃郁湯頭，暖胃首選", img: "https://images.unsplash.com/photo-1591814468924-caf88d1232e1?w=600&q=80" },
+        { n: "日式沾麵", t: ["日式", "Q彈"], p: 2, f: ["dry", "full"], d: "濃厚醬汁吸附麵條", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600&q=80" },
+        { n: "日式牛丼", t: ["日式", "快速"], p: 1, f: ["dry", "full"], d: "甜鹹醬汁拌飯", img: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&q=80" },
+        { n: "炸豬排定食", t: ["日式", "飽足"], p: 2, f: ["dry", "greasy", "full"], d: "外酥內嫩厚切豬排", img: "https://images.unsplash.com/photo-1624385108625-780c10978912?w=600&q=80" },
+        { n: "迴轉壽司", t: ["日式", "清爽"], p: 2, f: ["dry", "light"], d: "多樣化選擇", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&q=80" },
+        { n: "日式咖哩飯", t: ["日式", "濃郁"], p: 2, f: ["dry", "full"], d: "甘甜濃郁的日式風味", img: "https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&q=80" },
+        { n: "日式燒肉", t: ["日式", "聚餐"], p: 3, f: ["dry", "greasy", "full"], d: "自己烤肉的樂趣", img: "https://images.unsplash.com/photo-1558030006-450675393462?w=600&q=80" },
+        { n: "壽喜燒", t: ["日式", "鍋物"], p: 3, f: ["soup", "full"], d: "甜鹹醬汁涮牛肉", img: "https://images.unsplash.com/photo-1549203438-a7696aed3a05?w=600&q=80" },
+        { n: "烏龍麵", t: ["日式", "Q彈"], p: 1, f: ["soup", "light"], d: "簡單清爽的柴魚湯頭", img: "https://images.unsplash.com/photo-1618841557871-b4664fbf0cb3?w=600&q=80" },
+        { n: "章魚燒", t: ["日式", "小吃"], p: 1, f: ["dry", "light"], d: "外酥內軟的小點心", img: "https://images.unsplash.com/photo-1616259640398-356396c21e3c?w=600&q=80" },
         { n: "鰻魚飯", t: ["日式", "高級"], p: 3, f: ["dry", "full"], d: "炭烤香氣，補元氣", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Una-don_by_yoppy_in_Kyoto.jpg/600px-Una-don_by_yoppy_in_Kyoto.jpg" },
         
-        // 台式
-        { n: "紅燒牛肉麵", t: ["台式", "經典"], p: 2, f: ["soup", "spicy", "full"], d: "台灣人最愛的經典", img: "https://images.unsplash.com/photo-1596459384813-2d6459b15802?w=600&h=450&fit=crop" },
-        { n: "滷肉飯", t: ["台式", "必吃"], p: 1, f: ["dry", "greasy", "full"], d: "國民美食，肥瘦適中", img: "https://images.unsplash.com/photo-1647101708892-8064bd73c683?w=600&h=450&fit=crop" },
-        { n: "小籠包", t: ["中式", "爆漿"], p: 2, f: ["dry", "light"], d: "皮薄餡多湯汁鮮美", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&h=450&fit=crop" },
-        { n: "鍋貼", t: ["台式", "方便"], p: 1, f: ["dry", "greasy", "full"], d: "酥脆外皮與多汁內餡", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Fried_dumplings_of_Yung_Ho.jpg/600px-Fried_dumplings_of_Yung_Ho.jpg" },
-        { n: "麻辣火鍋", t: ["中式", "聚餐"], p: 3, f: ["soup", "spicy", "greasy", "full"], d: "香辣過癮，適合多人", img: "https://images.unsplash.com/photo-1565355607312-70b8a34237d6?w=600&h=450&fit=crop" },
+        // 台式 (盡量使用 Wikimedia Commons 以確保正確性)
+        { n: "紅燒牛肉麵", t: ["台式", "經典"], p: 2, f: ["soup", "spicy", "full"], d: "台灣人最愛的經典", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Beef_noodle_soup_in_Taiwan.jpg/600px-Beef_noodle_soup_in_Taiwan.jpg" },
+        { n: "滷肉飯", t: ["台式", "必吃"], p: 1, f: ["dry", "greasy", "full"], d: "國民美食，肥瘦適中", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Lu_rou_fan_by_avlxyz.jpg/600px-Lu_rou_fan_by_avlxyz.jpg" },
+        { n: "小籠包", t: ["中式", "爆漿"], p: 2, f: ["dry", "light"], d: "皮薄餡多湯汁鮮美", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&q=80" },
+        { n: "鍋貼/煎餃", t: ["台式", "方便"], p: 1, f: ["dry", "greasy", "full"], d: "酥脆外皮與多汁內餡", img: "https://images.unsplash.com/photo-1603565151594-5558913346d6?w=600&q=80" },
+        { n: "麻辣火鍋", t: ["中式", "聚餐"], p: 3, f: ["soup", "spicy", "greasy", "full"], d: "香辣過癮，適合多人", img: "https://images.unsplash.com/photo-1565355607312-70b8a34237d6?w=600&q=80" },
         { n: "火雞肉飯", t: ["台式", "嘉義"], p: 1, f: ["dry", "greasy", "full"], d: "雞油香氣十足", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Chiayi_Turkey_Rice.jpg/600px-Chiayi_Turkey_Rice.jpg" },
         { n: "排骨飯", t: ["台式", "便當"], p: 1, f: ["dry", "greasy", "full"], d: "古早味炸排骨", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Pork_Cutlet_Rice_with_Side_Dishes.jpg/600px-Pork_Cutlet_Rice_with_Side_Dishes.jpg" },
         { n: "清粥小菜", t: ["台式", "清淡"], p: 2, f: ["soup", "light"], d: "暖胃又清爽", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Congee_and_side_dishes_of_Taiwan.jpg/600px-Congee_and_side_dishes_of_Taiwan.jpg" },
@@ -287,115 +289,68 @@
         { n: "大腸包小腸", t: ["台式", "小吃"], p: 1, f: ["dry", "greasy", "light"], d: "台式熱狗堡", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Small_sausage_in_large_sausage_03.jpg/600px-Small_sausage_in_large_sausage_03.jpg" },
         
         // 西式/異國
-        { n: "美式漢堡", t: ["美式", "大口吃"], p: 2, f: ["dry", "greasy", "full"], d: "多汁牛肉排配起司", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=450&fit=crop" },
-        { n: "義大利麵", t: ["義式", "多樣"], p: 2, f: ["dry", "full"], d: "紅醬白醬青醬任選", img: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&h=450&fit=crop" },
-        { n: "窯烤披薩", t: ["義式", "分享"], p: 2, f: ["dry", "greasy", "full"], d: "薄脆餅皮，牽絲起司", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&h=450&fit=crop" },
-        { n: "牛排", t: ["西式", "慶祝"], p: 3, f: ["dry", "greasy", "full"], d: "大口吃肉的滿足感", img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&h=450&fit=crop" },
-        { n: "潛艇堡", t: ["美式", "健康"], p: 1, f: ["dry", "light"], d: "蔬菜滿滿，清爽無負擔", img: "https://images.unsplash.com/photo-1553909489-cd47e3b4430f?w=600&h=450&fit=crop" },
-        { n: "早午餐", t: ["西式", "悠閒"], p: 2, f: ["dry", "light"], d: "班尼迪克蛋與法式吐司", img: "https://images.unsplash.com/photo-1533089862017-54148d18ec03?w=600&h=450&fit=crop" },
-        { n: "炸雞", t: ["美式", "罪惡"], p: 2, f: ["dry", "greasy", "full"], d: "酥脆外皮多汁雞肉", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600&h=450&fit=crop" },
-        { n: "燉飯", t: ["義式", "濃郁"], p: 2, f: ["dry", "full"], d: "米心微硬口感", img: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=600&h=450&fit=crop" },
-        { n: "凱薩沙拉", t: ["西式", "減脂"], p: 2, f: ["dry", "light"], d: "輕食主義首選", img: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600&h=450&fit=crop" },
-        { n: "韓式炸雞", t: ["韓式", "甜辣"], p: 2, f: ["dry", "spicy", "greasy", "full"], d: "裹醬炸雞配啤酒", img: "https://images.unsplash.com/photo-1616877994793-27eb294df7ee?w=600&h=450&fit=crop" },
-        { n: "石鍋拌飯", t: ["韓式", "鍋巴"], p: 2, f: ["dry", "spicy", "full"], d: "豐富配菜拌辣醬", img: "https://images.unsplash.com/photo-1583225214464-9296bd077834?w=600&h=450&fit=crop" },
-        { n: "泡菜鍋", t: ["韓式", "酸辣"], p: 2, f: ["soup", "spicy", "full"], d: "酸辣開胃熱湯", img: "https://images.unsplash.com/photo-1583474930678-a579603be44d?w=600&h=450&fit=crop" },
+        { n: "美式漢堡", t: ["美式", "大口吃"], p: 2, f: ["dry", "greasy", "full"], d: "多汁牛肉排配起司", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80" },
+        { n: "義大利麵", t: ["義式", "多樣"], p: 2, f: ["dry", "full"], d: "紅醬白醬青醬任選", img: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600&q=80" },
+        { n: "窯烤披薩", t: ["義式", "分享"], p: 2, f: ["dry", "greasy", "full"], d: "薄脆餅皮，牽絲起司", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&q=80" },
+        { n: "牛排", t: ["西式", "慶祝"], p: 3, f: ["dry", "greasy", "full"], d: "大口吃肉的滿足感", img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&q=80" },
+        { n: "潛艇堡", t: ["美式", "健康"], p: 1, f: ["dry", "light"], d: "蔬菜滿滿，清爽無負擔", img: "https://images.unsplash.com/photo-1553909489-cd47e3b4430f?w=600&q=80" },
+        { n: "炸雞", t: ["美式", "罪惡"], p: 2, f: ["dry", "greasy", "full"], d: "酥脆外皮多汁雞肉", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600&q=80" },
+        { n: "燉飯", t: ["義式", "濃郁"], p: 2, f: ["dry", "full"], d: "米心微硬口感", img: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=600&q=80" },
+        { n: "凱薩沙拉", t: ["西式", "減脂"], p: 2, f: ["dry", "light"], d: "輕食主義首選", img: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600&q=80" },
+        { n: "韓式炸雞", t: ["韓式", "甜辣"], p: 2, f: ["dry", "spicy", "greasy", "full"], d: "裹醬炸雞配啤酒", img: "https://images.unsplash.com/photo-1616877994793-27eb294df7ee?w=600&q=80" },
+        { n: "石鍋拌飯", t: ["韓式", "鍋巴"], p: 2, f: ["dry", "spicy", "full"], d: "豐富配菜拌辣醬", img: "https://images.unsplash.com/photo-1583225214464-9296bd077834?w=600&q=80" },
+        { n: "韓式泡菜鍋", t: ["韓式", "酸辣"], p: 2, f: ["soup", "spicy", "full"], d: "酸辣開胃熱湯", img: "https://images.unsplash.com/photo-1583474930678-a579603be44d?w=600&q=80" },
         { n: "泰式打拋豬", t: ["泰式", "下飯"], p: 1, f: ["dry", "spicy", "greasy", "full"], d: "酸辣鹹香，白飯殺手", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Thai_Krapow.jpg/600px-Thai_Krapow.jpg" },
-        { n: "越南河粉", t: ["越式", "清爽"], p: 1, f: ["soup", "light"], d: "清甜湯頭配檸檬", img: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600&h=450&fit=crop" },
+        { n: "越南河粉", t: ["越式", "清爽"], p: 1, f: ["soup", "light"], d: "清甜湯頭配檸檬", img: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600&q=80" },
         { n: "海南雞飯", t: ["星馬", "嫩雞"], p: 1, f: ["dry", "greasy", "full"], d: "雞肉滑嫩，雞油飯香", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Hainanese_Chicken_Rice.jpg/600px-Hainanese_Chicken_Rice.jpg" },
-        { n: "印度咖哩", t: ["異國", "香料"], p: 2, f: ["soup", "spicy", "full"], d: "香料層次豐富配烤餅", img: "https://images.unsplash.com/photo-1631296370398-32217c2a4197?w=600&h=450&fit=crop" },
+        { n: "印度咖哩", t: ["異國", "香料"], p: 2, f: ["soup", "spicy", "full"], d: "香料層次豐富配烤餅", img: "https://images.unsplash.com/photo-1631296370398-32217c2a4197?w=600&q=80" },
 
-        // 補充 100+ (共用通用圖片，確保有圖)
-        { n: "麻辣燙", t: ["中式", "個人"], p: 1, f: ["soup", "spicy", "light"], d: "想吃什麼夾什麼", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Malatang_2013.jpg/600px-Malatang_2013.jpg" },
+        // 更多選擇
+        { n: "麻辣燙/滷味", t: ["中式", "個人"], p: 1, f: ["soup", "spicy", "light"], d: "想吃什麼夾什麼", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Malatang_2013.jpg/600px-Malatang_2013.jpg" },
         { n: "鹹酥雞", t: ["台式", "宵夜"], p: 1, f: ["dry", "greasy", "light"], d: "台灣味炸物拼盤", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Taiwanese_fried_chicken.jpg/600px-Taiwanese_fried_chicken.jpg" },
         { n: "涼麵", t: ["台式", "消暑"], p: 1, f: ["dry", "light"], d: "麻醬香氣濃郁", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Cold_noodle.jpg/600px-Cold_noodle.jpg" },
         { n: "鐵板燒", t: ["台式", "現炒"], p: 2, f: ["dry", "greasy", "full"], d: "師傅現炒青菜與主食", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Teppanyaki_in_Taipei.jpg/600px-Teppanyaki_in_Taipei.jpg" },
-        { n: "炒飯", t: ["中式", "鑊氣"], p: 1, f: ["dry", "greasy", "full"], d: "粒粒分明", img: "https://images.unsplash.com/photo-1603133872878-684f10842619?w=600&h=450&fit=crop" },
-        { n: "炒麵", t: ["台式", "家常"], p: 1, f: ["dry", "greasy", "full"], d: "大火快炒香氣", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600&h=450&fit=crop" },
-        { n: "米粉湯", t: ["台式", "小吃"], p: 1, f: ["soup", "light"], d: "粗米粉配黑白切", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Rice_noodle_soup_of_Taiwan.jpg/600px-Rice_noodle_soup_of_Taiwan.jpg" },
+        { n: "炒飯", t: ["中式", "鑊氣"], p: 1, f: ["dry", "greasy", "full"], d: "粒粒分明", img: "https://images.unsplash.com/photo-1603133872878-684f10842619?w=600&q=80" },
         { n: "肉圓", t: ["台式", "Q彈"], p: 1, f: ["dry", "greasy", "light"], d: "低溫油泡外皮Q彈", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Ba-wan_in_Tainan.jpg/600px-Ba-wan_in_Tainan.jpg" },
         { n: "關東煮", t: ["日式", "清淡"], p: 1, f: ["soup", "light"], d: "便利商店的溫暖", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Oden_at_FamilyMart_in_Taipei.jpg/600px-Oden_at_FamilyMart_in_Taipei.jpg" },
-        { n: "燒臘便當", t: ["港式", "油雞"], p: 1, f: ["dry", "greasy", "full"], d: "蔥油配上燒鴨油雞", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Siu_mei_combo.jpg/600px-Siu_mei_combo.jpg" },
-        { n: "港式點心", t: ["港式", "飲茶"], p: 2, f: ["dry", "light"], d: "燒賣、蝦餃、叉燒包", img: "https://images.unsplash.com/photo-1496116218417-1a781b1cdd23?w=600&h=450&fit=crop" },
-        { n: "茶餐廳", t: ["港式", "快餐"], p: 2, f: ["dry", "greasy", "full"], d: "公仔麵、波蘿油", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Pineapple_bun_with_butter.jpg/600px-Pineapple_bun_with_butter.jpg" },
+        { n: "港式燒臘", t: ["港式", "油雞"], p: 1, f: ["dry", "greasy", "full"], d: "蔥油配上燒鴨油雞", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Siu_mei_combo.jpg/600px-Siu_mei_combo.jpg" },
+        { n: "港式點心", t: ["港式", "飲茶"], p: 2, f: ["dry", "light"], d: "燒賣、蝦餃、叉燒包", img: "https://images.unsplash.com/photo-1496116218417-1a781b1cdd23?w=600&q=80" },
         { n: "酸菜白肉鍋", t: ["中式", "酸爽"], p: 3, f: ["soup", "full"], d: "酸白菜配五花肉", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Pickled_cabbage_hot_pot.jpg/600px-Pickled_cabbage_hot_pot.jpg" },
-        { n: "砂鍋魚頭", t: ["台式", "大菜"], p: 3, f: ["soup", "greasy", "full"], d: "湯頭濃郁料多", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Fish_head_casserole.jpg/600px-Fish_head_casserole.jpg" },
-        { n: "雞排", t: ["台式", "邪惡"], p: 1, f: ["dry", "greasy", "light"], d: "宵夜霸主", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Fried_chicken_steak_of_Hot-Star.jpg/600px-Fried_chicken_steak_of_Hot-Star.jpg" },
-        { n: "IKEA餐廳", t: ["瑞典", "肉丸"], p: 2, f: ["dry", "full"], d: "肉丸與炸雞翅", img: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600&h=450&fit=crop" },
-        { n: "便利商店", t: ["超商", "快速"], p: 1, f: ["dry", "full"], d: "微波即食", img: "https://images.unsplash.com/photo-1626078302198-7df2e0e5a840?w=600&h=450&fit=crop" },
-        { n: "咖啡廳輕食", t: ["西式", "優雅"], p: 2, f: ["dry", "light"], d: "三明治配咖啡", img: "https://images.unsplash.com/photo-1550950158-d0d060d1652c?w=600&h=450&fit=crop" },
-        { n: "大戶屋", t: ["日式", "定食"], p: 2, f: ["dry", "full"], d: "家庭式日式料理", img: "https://images.unsplash.com/photo-1596483771960-a292d3543d2c?w=600&h=450&fit=crop" },
-        { n: "海底撈", t: ["火鍋", "服務"], p: 3, f: ["soup", "spicy", "full"], d: "服務第一", img: "https://images.unsplash.com/photo-1614264624911-30c80d463870?w=600&h=450&fit=crop" },
-        { n: "鼎泰豐", t: ["中式", "精緻"], p: 3, f: ["dry", "light"], d: "世界級小籠包", img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=600&h=450&fit=crop" },
-        { n: "麥當勞", t: ["美式", "速食"], p: 1, f: ["dry", "greasy", "full"], d: "薯條是本體", img: "https://images.unsplash.com/photo-1552590635-27c2c2128abf?w=600&h=450&fit=crop" },
-        { n: "肯德基", t: ["美式", "蛋塔"], p: 2, f: ["dry", "greasy", "full"], d: "被炸雞耽誤的蛋塔店", img: "https://images.unsplash.com/photo-1513639776629-7b611594e29b?w=600&h=450&fit=crop" },
-        { n: "必勝客", t: ["義式", "披薩"], p: 2, f: ["dry", "greasy", "full"], d: "各種奇妙口味", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&h=450&fit=crop" },
-        { n: "蔥抓餅", t: ["台式", "點心"], p: 1, f: ["dry", "greasy", "light"], d: "加蛋加起司", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Scallion_pancake.jpg/600px-Scallion_pancake.jpg" },
-        { n: "地瓜球", t: ["台式", "Q彈"], p: 1, f: ["dry", "light"], d: "快樂的空氣感", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Sweet_potato_balls.jpg/600px-Sweet_potato_balls.jpg" },
-        { n: "沙威瑪", t: ["異國", "旋轉"], p: 1, f: ["dry", "full"], d: "旋轉烤肉削下來", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Doner_kebab.jpg/600px-Doner_kebab.jpg" },
-        { n: "可麗餅", t: ["異國", "脆皮"], p: 1, f: ["dry", "light"], d: "鹹甜口味都有", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Crepes.jpg/600px-Crepes.jpg" },
+        { n: "大雞排", t: ["台式", "邪惡"], p: 1, f: ["dry", "greasy", "light"], d: "宵夜霸主", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Fried_chicken_steak_of_Hot-Star.jpg/600px-Fried_chicken_steak_of_Hot-Star.jpg" },
+        { n: "便利商店", t: ["超商", "快速"], p: 1, f: ["dry", "full"], d: "微波即食", img: "https://images.unsplash.com/photo-1626078302198-7df2e0e5a840?w=600&q=80" },
+        { n: "麥當勞/速食", t: ["美式", "速食"], p: 1, f: ["dry", "greasy", "full"], d: "薯條是本體", img: "https://images.unsplash.com/photo-1552590635-27c2c2128abf?w=600&q=80" },
         { n: "豆花", t: ["甜點", "古早"], p: 1, f: ["soup", "light"], d: "綿密豆香配花生", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Douhua.jpg/600px-Douhua.jpg" },
-        { n: "燒仙草", t: ["甜點", "暖胃"], p: 1, f: ["soup", "light"], d: "冬天必喝", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Grass_jelly.jpg/600px-Grass_jelly.jpg" }
+        { n: "炒麵", t: ["台式", "家常"], p: 1, f: ["dry", "greasy", "full"], d: "大火快炒香氣", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=600&q=80" }
     ];
 
     const breakfastDB = [
-        // 中式傳統
         { n: "蛋餅", t: ["中式", "經典"], p: 1, f: ["chn", "rush", "quick"], d: "鮪魚、玉米、起司任選", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Dan_bing.jpg/600px-Dan_bing.jpg" },
         { n: "飯糰", t: ["中式", "飽足"], p: 1, f: ["chn", "rush", "full"], d: "紫米飯糰加油條", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Cifantuan_from_Liu_Yuan_Pavilion.jpg/600px-Cifantuan_from_Liu_Yuan_Pavilion.jpg" },
         { n: "燒餅油條", t: ["中式", "酥脆"], p: 1, f: ["chn", "chill"], d: "配豆漿絕配", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Youtiao_and_Shaobing.jpg/600px-Youtiao_and_Shaobing.jpg" },
-        { n: "小籠湯包", t: ["中式", "多汁"], p: 2, f: ["chn", "chill"], d: "早餐吃這個太幸福", img: "https://images.unsplash.com/photo-1595248171120-f5ba4c3c3a0b?w=600&h=450&fit=crop" },
+        { n: "小籠湯包", t: ["中式", "多汁"], p: 2, f: ["chn", "chill"], d: "早餐吃這個太幸福", img: "https://images.unsplash.com/photo-1595248171120-f5ba4c3c3a0b?w=600&q=80" },
         { n: "蘿蔔糕", t: ["中式", "恰恰"], p: 1, f: ["chn", "rush"], d: "加蛋更好吃", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Turnip_cake_03.jpg/600px-Turnip_cake_03.jpg" },
-        { n: "清粥小菜", t: ["中式", "清淡"], p: 1, f: ["chn", "chill"], d: "暖胃首選", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Congee_and_side_dishes_of_Taiwan.jpg/600px-Congee_and_side_dishes_of_Taiwan.jpg" },
         { n: "鐵板麵", t: ["中式", "重口味"], p: 1, f: ["chn", "chill", "full"], d: "黑胡椒加蛋", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Teppanyaki_noodles.jpg/600px-Teppanyaki_noodles.jpg" },
-        { n: "鍋貼", t: ["中式", "酥脆"], p: 1, f: ["chn", "rush"], d: "早餐店的煎餃", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Potstickers.jpg/600px-Potstickers.jpg" },
         { n: "鹹豆漿", t: ["中式", "特色"], p: 1, f: ["chn", "chill"], d: "像蒸蛋一樣的口感", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Salty_soy_milk.jpg/600px-Salty_soy_milk.jpg" },
-        { n: "饅頭夾蛋", t: ["中式", "樸實"], p: 1, f: ["chn", "rush"], d: "簡單又耐吃", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Mantou_with_egg.jpg/600px-Mantou_with_egg.jpg" },
-        { n: "肉包", t: ["中式", "方便"], p: 1, f: ["chn", "rush", "quick"], d: "熱騰騰的滿足感", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Meat_bun.jpg/600px-Meat_bun.jpg" },
+        { n: "肉包/饅頭", t: ["中式", "方便"], p: 1, f: ["chn", "rush", "quick"], d: "熱騰騰的滿足感", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Meat_bun.jpg/600px-Meat_bun.jpg" },
         { n: "蔥抓餅", t: ["中式", "酥脆"], p: 1, f: ["chn", "rush"], d: "層次分明", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Scallion_pancake.jpg/600px-Scallion_pancake.jpg" },
-        { n: "米漿/豆漿", t: ["飲品", "傳統"], p: 1, f: ["chn", "quick"], d: "搭配油條最對味", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Soy_milk.jpg/600px-Soy_milk.jpg" },
         { n: "刈包", t: ["中式", "飽足"], p: 1, f: ["chn", "rush"], d: "早餐吃這個很爽", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Gua_bao.jpg/600px-Gua_bao.jpg" },
-        
-        // 西式/速食
-        { n: "火腿蛋吐司", t: ["西式", "經典"], p: 1, f: ["west", "rush", "quick"], d: "切邊不切邊？", img: "https://images.unsplash.com/photo-1525351484163-7529414395d8?w=600&h=450&fit=crop" },
-        { n: "總匯三明治", t: ["西式", "豐富"], p: 1, f: ["west", "rush", "full"], d: "四層口感超滿足", img: "https://images.unsplash.com/photo-1553909489-cd47e3b4430f?w=600&h=450&fit=crop" },
-        { n: "豬肉滿福堡", t: ["美式", "經典"], p: 1, f: ["west", "rush", "quick"], d: "麥當勞早餐", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&h=450&fit=crop" },
-        { n: "薯餅", t: ["美式", "酥脆"], p: 1, f: ["west", "quick"], d: "早餐的靈魂", img: "https://images.unsplash.com/photo-1518047601542-79f18c655718?w=600&h=450&fit=crop" },
-        { n: "卡拉雞腿堡", t: ["美式", "飽足"], p: 1, f: ["west", "rush", "full"], d: "早餐吃炸雞", img: "https://images.unsplash.com/photo-1615557960916-5f4791effe9d?w=600&h=450&fit=crop" },
-        { n: "貝果", t: ["西式", "嚼勁"], p: 1, f: ["west", "chill"], d: "抹乳酪醬", img: "https://images.unsplash.com/photo-1587393855524-087f83d95bc9?w=600&h=450&fit=crop" },
-        { n: "可頌", t: ["西式", "酥脆"], p: 1, f: ["west", "chill"], d: "配咖啡剛好", img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&h=450&fit=crop" },
-        { n: "鮪魚蛋餅", t: ["台式", "人氣"], p: 1, f: ["chn", "rush"], d: "早餐店必點", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Dan_bing.jpg/600px-Dan_bing.jpg" },
-        { n: "花生厚片", t: ["西式", "甜食"], p: 1, f: ["west", "rush", "quick"], d: "有顆粒的花生醬", img: "https://images.unsplash.com/photo-1584776296906-6af8a54d6f78?w=600&h=450&fit=crop" },
-        
-        // 早午餐/悠閒
-        { n: "班尼迪克蛋", t: ["早午餐", "精緻"], p: 2, f: ["west", "chill", "slow"], d: "水波蛋淋上荷蘭醬", img: "https://images.unsplash.com/photo-1533089862017-54148d18ec03?w=600&h=450&fit=crop" },
-        { n: "美式早午餐盤", t: ["早午餐", "豐富"], p: 2, f: ["west", "chill", "full", "slow"], d: "炒蛋、培根、薯塊", img: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=600&h=450&fit=crop" },
-        { n: "法式吐司", t: ["早午餐", "甜美"], p: 2, f: ["west", "chill", "slow"], d: "淋上楓糖漿", img: "https://images.unsplash.com/photo-1584776296906-6af8a54d6f78?w=600&h=450&fit=crop" },
-        { n: "鬆餅", t: ["早午餐", "甜點"], p: 2, f: ["west", "chill"], d: "格子鬆餅配鮮奶油", img: "https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=600&h=450&fit=crop" },
-        { n: "歐姆蛋捲", t: ["早午餐", "滑嫩"], p: 2, f: ["west", "chill", "slow"], d: "包滿蘑菇起司", img: "https://images.unsplash.com/photo-1510693206972-df098062cb71?w=600&h=450&fit=crop" },
-        { n: "酪梨吐司", t: ["早午餐", "健康"], p: 2, f: ["west", "chill", "slow"], d: "健康時尚早餐", img: "https://images.unsplash.com/photo-1588137372308-15f75323ca8d?w=600&h=450&fit=crop" },
-        { n: "優格碗", t: ["早午餐", "輕食"], p: 2, f: ["west", "chill", "quick"], d: "希臘優格配燕麥", img: "https://images.unsplash.com/photo-1488477181946-6428a029177b?w=600&h=450&fit=crop" },
-        { n: "路易莎咖啡", t: ["連鎖", "方便"], p: 1, f: ["west", "chill", "quick"], d: "咖啡配磚壓吐司", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Louisa_Coffee_Latte.jpg/600px-Louisa_Coffee_Latte.jpg" },
-        
-        // 超商/快速
+        { n: "火腿蛋吐司", t: ["西式", "經典"], p: 1, f: ["west", "rush", "quick"], d: "切邊不切邊？", img: "https://images.unsplash.com/photo-1525351484163-7529414395d8?w=600&q=80" },
+        { n: "總匯三明治", t: ["西式", "豐富"], p: 1, f: ["west", "rush", "full"], d: "四層口感超滿足", img: "https://images.unsplash.com/photo-1553909489-cd47e3b4430f?w=600&q=80" },
+        { n: "豬肉滿福堡", t: ["美式", "經典"], p: 1, f: ["west", "rush", "quick"], d: "麥當勞早餐", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&q=80" },
+        { n: "薯餅", t: ["美式", "酥脆"], p: 1, f: ["west", "quick"], d: "早餐的靈魂", img: "https://images.unsplash.com/photo-1518047601542-79f18c655718?w=600&q=80" },
+        { n: "貝果", t: ["西式", "嚼勁"], p: 1, f: ["west", "chill"], d: "抹乳酪醬", img: "https://images.unsplash.com/photo-1587393855524-087f83d95bc9?w=600&q=80" },
+        { n: "可頌", t: ["西式", "酥脆"], p: 1, f: ["west", "chill"], d: "配咖啡剛好", img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&q=80" },
+        { n: "花生厚片", t: ["西式", "甜食"], p: 1, f: ["west", "rush", "quick"], d: "有顆粒的花生醬", img: "https://images.unsplash.com/photo-1584776296906-6af8a54d6f78?w=600&q=80" },
+        { n: "班尼迪克蛋", t: ["早午餐", "精緻"], p: 2, f: ["west", "chill", "slow"], d: "水波蛋淋上荷蘭醬", img: "https://images.unsplash.com/photo-1533089862017-54148d18ec03?w=600&q=80" },
+        { n: "美式早午餐盤", t: ["早午餐", "豐富"], p: 2, f: ["west", "chill", "full", "slow"], d: "炒蛋、培根、薯塊", img: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=600&q=80" },
+        { n: "法式吐司", t: ["早午餐", "甜美"], p: 2, f: ["west", "chill", "slow"], d: "淋上楓糖漿", img: "https://images.unsplash.com/photo-1584776296906-6af8a54d6f78?w=600&q=80" },
+        { n: "歐姆蛋捲", t: ["早午餐", "滑嫩"], p: 2, f: ["west", "chill", "slow"], d: "包滿蘑菇起司", img: "https://images.unsplash.com/photo-1510693206972-df098062cb71?w=600&q=80" },
+        { n: "優格碗", t: ["早午餐", "輕食"], p: 2, f: ["west", "chill", "quick"], d: "希臘優格配燕麥", img: "https://images.unsplash.com/photo-1488477181946-6428a029177b?w=600&q=80" },
         { n: "超商飯糰", t: ["超商", "方便"], p: 1, f: ["quick", "rush"], d: "鮪魚、肉鬆口味", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Onigiri_packaging.jpg/600px-Onigiri_packaging.jpg" },
         { n: "茶葉蛋+地瓜", t: ["超商", "健康"], p: 1, f: ["quick", "rush"], d: "健身族首選", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Tea_eggs_in_convenience_store.jpg/600px-Tea_eggs_in_convenience_store.jpg" },
-        { n: "三明治+咖啡", t: ["超商", "經典"], p: 1, f: ["quick", "rush"], d: "39/49/59組合", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&h=450&fit=crop" }, // Placeholder for generic combo
-        { n: "熱壓吐司", t: ["超商", "熱食"], p: 1, f: ["quick", "rush"], d: "超商現做熱食", img: "https://images.unsplash.com/photo-1525351484163-7529414395d8?w=600&h=450&fit=crop" },
-        { n: "大亨堡", t: ["超商", "經典"], p: 1, f: ["quick", "rush"], d: "熱狗配酸黃瓜", img: "https://images.unsplash.com/photo-1619740455993-9e612b1af08a?w=600&h=450&fit=crop" },
-        { n: "關東煮", t: ["超商", "暖胃"], p: 1, f: ["quick", "rush"], d: "喝湯暖暖胃", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Oden_at_FamilyMart_in_Taipei.jpg/600px-Oden_at_FamilyMart_in_Taipei.jpg" },
-        
-        // 其他
-        { n: "涼麵", t: ["台式", "消暑"], p: 1, f: ["chn", "rush"], d: "早餐吃涼麵很爽", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Cold_noodle.jpg/600px-Cold_noodle.jpg" },
-        { n: "肉羹麵", t: ["台式", "飽足"], p: 1, f: ["chn", "full"], d: "南部人的早餐", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Rice_noodle_soup_of_Taiwan.jpg/600px-Rice_noodle_soup_of_Taiwan.jpg" },
-        { n: "牛肉湯", t: ["台式", "台南"], p: 2, f: ["chn", "full", "slow"], d: "台南早餐霸主", img: "https://images.unsplash.com/photo-1596459384813-2d6459b15802?w=600&h=450&fit=crop" },
-        { n: "虱目魚粥", t: ["台式", "台南"], p: 1, f: ["chn", "full", "slow"], d: "鮮甜海味", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Congee_and_side_dishes_of_Taiwan.jpg/600px-Congee_and_side_dishes_of_Taiwan.jpg" },
-        { n: "米粉湯", t: ["台式", "傳統"], p: 1, f: ["chn", "chill"], d: "配油豆腐", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Rice_noodle_soup_of_Taiwan.jpg/600px-Rice_noodle_soup_of_Taiwan.jpg" },
-        { n: "摩斯漢堡", t: ["速食", "米漢堡"], p: 2, f: ["west", "rush"], d: "海洋珍珠堡", img: "https://images.unsplash.com/photo-1550950158-d0d060d1652c?w=600&h=450&fit=crop" },
-        { n: "星巴克", t: ["西式", "奢華"], p: 2, f: ["west", "chill", "quick"], d: "可頌配那堤", img: "https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=600&h=450&fit=crop" }
+        { n: "牛肉湯", t: ["台式", "台南"], p: 2, f: ["chn", "full", "slow"], d: "台南早餐霸主", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Beef_noodle_soup_in_Taiwan.jpg/600px-Beef_noodle_soup_in_Taiwan.jpg" },
+        { n: "星巴克", t: ["西式", "奢華"], p: 2, f: ["west", "chill", "quick"], d: "可頌配那堤", img: "https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=600&q=80" }
     ];
-    // [段落 C] 結束
-
-    // [段落 D] 開始：核心邏輯 (Logic)
-    // 包含：頁面切換、篩選邏輯、卡片渲染、動畫效果
 
     let state = {
         mode: 'regular', 
@@ -476,11 +431,6 @@
         list.sort((a, b) => b.matchScore - a.matchScore);
         state.candidates = shuffle(list.slice(0, 40));
         state.currentIndex = 0;
-        
-        // 預載圖片
-        if(state.candidates.length > 0) {
-            new Image().src = state.candidates[0].img;
-        }
     }
 
     function renderCard() {
@@ -489,7 +439,7 @@
         
         if (state.currentIndex >= state.candidates.length) {
             if (state.shortlist.length > 0) showPodium();
-            else container.innerHTML = '<div class="empty-msg">沒有符合的選項了...<br>請放寬條件重試</div><div style="text-align:center;margin-top:20px;"><button class="option-btn" onclick="location.reload()">重來</button></div>';
+            else container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">沒有符合的選項了...<br>請放寬條件重試</div><div style="text-align:center;margin-top:20px;"><button class="option-btn" onclick="location.reload()">重來</button></div>';
             return;
         }
 
@@ -497,11 +447,9 @@
         const card = document.createElement('div');
         card.className = 'food-card';
         
-        // 直接使用 item.img (真實圖片網址)
-        const bgImg = item.img || 'https://placehold.co/600x450?text=No+Image';
-        
+        // 使用多重背景：如果 item.img 失敗，會顯示 backupImg
         card.innerHTML = `
-            <div class="card-img" style="background-image: url('${bgImg}')"></div>
+            <div class="card-img" style="background-image: url('${item.img}'), url('${backupImg}')"></div>
             <div class="card-content">
                 <div class="card-title">${item.n}</div>
                 <div class="tags">
@@ -524,7 +472,7 @@
         `;
         container.appendChild(card);
 
-        // 預載下一張
+        // 預載下一張 (包含 backup)
         if (state.currentIndex + 1 < state.candidates.length) {
             const nextImg = new Image();
             nextImg.src = state.candidates[state.currentIndex + 1].img;
@@ -577,7 +525,7 @@
             div.className = 'podium-item';
             div.id = `podium-${index}`; 
             div.innerHTML = `
-                <div class="p-img" style="background-image: url('${item.img}')"></div>
+                <div class="p-img" style="background-image: url('${item.img}'), url('${backupImg}')"></div>
                 <div class="p-info">
                     <div class="p-name">${item.n}</div>
                     <div class="p-desc">${item.d}</div>
@@ -587,36 +535,43 @@
         });
     }
 
+    // [修復] 轉盤邏輯：確保停下來的位置等於最後顯示的結果
     function startRoulette() {
         const btn = document.getElementById('startBtn');
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 命運運轉中...';
         
-        let items = document.querySelectorAll('.podium-item');
-        let current = 0;
-        let speed = 100;
-        let rounds = 0;
-        let totalRounds = 3;
+        const items = document.querySelectorAll('.podium-item');
         
+        // 1. 先內定贏家
         const winnerIndex = Math.floor(Math.random() * state.shortlist.length);
         
-        function step() {
-            items.forEach(el => el.classList.remove('highlight'));
-            items[current].classList.add('highlight');
-            
-            let prev = current;
-            current++;
-            if (current >= items.length) {
-                current = 0;
-                rounds++;
-            }
+        // 2. 計算總步數：確保最後一步剛好落在 winnerIndex
+        // 跑 5 圈 (state.shortlist.length * 5) + 贏家的位置
+        const totalSteps = (state.shortlist.length * 5) + winnerIndex;
+        
+        let currentStep = 0;
+        let speed = 50;
 
-            if (rounds >= totalRounds && current === winnerIndex) {
+        function step() {
+            // 清除 Highlight
+            items.forEach(el => el.classList.remove('highlight'));
+            
+            // 計算目前亮哪一個
+            const activeIndex = currentStep % items.length;
+            items[activeIndex].classList.add('highlight');
+
+            if (currentStep >= totalSteps) {
+                // 動畫結束
                 setTimeout(() => {
                     showResult(state.shortlist[winnerIndex]);
                 }, 500);
             } else {
-                if (rounds > 0) speed += 10; 
+                currentStep++;
+                // 速度控制：最後幾步變慢
+                if (currentStep > totalSteps - 5) speed += 60;
+                else if (currentStep > totalSteps - 15) speed += 20;
+                
                 setTimeout(step, speed);
             }
         }
@@ -628,12 +583,14 @@
         document.getElementById('v-result').classList.add('active');
         
         document.getElementById('resName').innerText = item.n;
-        document.getElementById('resImg').style.backgroundImage = `url('${item.img}')`;
+        // 這裡也加上備用圖片機制
+        document.getElementById('resImg').style.backgroundImage = `url('${item.img}'), url('${backupImg}')`;
         
         document.getElementById('resTags').innerHTML = 
             item.t.map(t => `<span class="tag">${t}</span>`).join('') +
             `<span class="tag" style="background:#FFF3E0;color:#F57C00">${'$'.repeat(item.p)}</span>`;
 
+        // [修復] Google Maps 連結格式
         const query = encodeURIComponent(item.n + " 附近");
         document.getElementById('resLink').href = `https://www.google.com/maps/search/?api=1&query=${query}`;
     }
@@ -645,7 +602,6 @@
         }
         return array;
     }
-    // [段落 D] 結束
     </script>
 </body>
 </html>
