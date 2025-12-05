@@ -19,10 +19,17 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        
         body { 
             margin: 0; padding: 0; font-family: 'Noto Sans TC', sans-serif; 
-            background: var(--bg); color: var(--text-main); height: 100dvh; 
-            overflow: hidden; display: flex; flex-direction: column;
+            background: var(--bg); color: var(--text-main); 
+            /* 修改：改為 100% 確保相容性 */
+            height: 100%;
+            /* 修改：移除 overflow: hidden 以防止內容完全鎖死，或交由 .view 控制 */
+            overflow: hidden; 
+            display: flex; flex-direction: column;
+            /* 修正 iOS 100vh 問題 */
+            height: 100dvh;
         }
 
         /* === Header === */
@@ -30,31 +37,59 @@
             padding: 15px 25px; display: flex; justify-content: space-between; align-items: center;
             font-weight: 900; letter-spacing: 1px; color: #5F7D8B;
             padding-top: max(20px, env(safe-area-inset-top));
+            /* 確保 Header 不會被壓縮 */
+            flex-shrink: 0; 
+            background: var(--bg);
+            z-index: 10;
         }
         .heart-counter {
             background: #fff; padding: 6px 14px; border-radius: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); color: var(--primary); font-weight: bold; font-size: 14px;
         }
 
-        /* === View Container === */
+        /* === View Container (修正重點) === */
         .view {
-            flex: 1; display: none; flex-direction: column; 
-            align-items: center; justify-content: center;
-            padding: 20px; position: relative; width: 100%;
+            flex: 1; 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            /* 修改：改為靠上對齊，避免置中導致頭尾被切 */
+            justify-content: flex-start;
+            padding: 20px; 
+            position: relative; 
+            width: 100%;
             animation: fadeIn 0.4s ease;
+            /* 修改：允許內容過長時滑動 */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            /* 修改：增加底部空間，避免被手機 Home Bar 擋住 */
+            padding-bottom: max(60px, env(safe-area-inset-bottom));
         }
         .view.active { display: flex; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* === Wizard (Questions) === */
-        .question-title { font-size: 24px; font-weight: 900; color: #455A64; margin-bottom: 30px; text-align: center; }
+        /* === Wizard (Questions) (修正重點) === */
+        .question-title { 
+            font-size: 24px; 
+            font-weight: 900; 
+            color: #455A64; 
+            /* 縮小間距 */
+            margin-bottom: 20px; 
+            margin-top: 10px;
+            text-align: center; 
+            flex-shrink: 0;
+        }
         .option-btn {
             width: 100%; max-width: 340px; background: white; 
-            padding: 20px; margin-bottom: 15px; border-radius: 16px;
+            /* 縮小內距讓畫面塞得下更多 */
+            padding: 16px; 
+            margin-bottom: 12px; 
+            border-radius: 16px;
             font-size: 17px; font-weight: 700; text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer;
             transition: transform 0.1s, background 0.2s; border: 2px solid transparent;
+            flex-shrink: 0;
         }
         .option-btn:active { transform: scale(0.98); background: #f0f0f0; }
 
@@ -62,6 +97,9 @@
         .card-container {
             width: 100%; max-width: 340px; aspect-ratio: 3/4.5;
             position: relative; perspective: 1000px;
+            /* 讓卡片區域在小螢幕也能縮放 */
+            flex-shrink: 0; 
+            margin: auto 0;
         }
         .food-card {
             position: absolute; inset: 0; background: white; border-radius: var(--radius);
@@ -75,7 +113,6 @@
             background-size: cover; background-position: center;
             position: relative;
         }
-        /* 圖片載入中的佔位符 */
         .card-img::before {
             content: 'Loading...'; display: flex; align-items: center; justify-content: center;
             position: absolute; inset: 0; color: #999; font-size: 12px; z-index: 0;
@@ -101,8 +138,9 @@
 
         /* Action Buttons */
         .action-bar {
-            display: flex; gap: 25px; margin-top: 30px;
+            display: flex; gap: 25px; margin-top: 20px;
             width: 100%; max-width: 340px; justify-content: center;
+            padding-bottom: 20px;
         }
         .big-btn {
             width: 65px; height: 65px; border-radius: 50%;
@@ -122,7 +160,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.1s;
         }
         .podium-item:active { transform: scale(0.98); }
-        .p-img { width: 65px; height: 65px; border-radius: 12px; background: #eee; background-size: cover; background-position: center; }
+        .p-img { width: 65px; height: 65px; border-radius: 12px; background: #eee; background-size: cover; background-position: center; flex-shrink: 0; }
         .p-info { flex: 1; }
         .p-name { font-weight: 800; font-size: 17px; margin-bottom: 4px; color: #333; }
         .p-desc { font-size: 13px; color: #999; }
@@ -131,6 +169,7 @@
             margin-top: 25px; width: 100%; max-width: 360px;
             background: white; border: 2px solid #eee; padding: 16px;
             border-radius: 30px; font-weight: 800; color: #5F7D8B; font-size: 16px;
+            margin-bottom: 40px;
         }
 
         /* === Result === */
@@ -138,6 +177,7 @@
             width: 220px; height: 220px; border-radius: 50%; 
             background: #eee; margin-bottom: 25px; border: 6px solid white;
             box-shadow: var(--shadow); background-size: cover; background-position: center;
+            flex-shrink: 0;
         }
         .map-btn {
             background: #546E7A; color: white; width: 100%; max-width: 340px;
@@ -145,6 +185,7 @@
             display: flex; align-items: center; justify-content: center; gap: 10px;
             font-weight: bold; font-size: 16px;
             box-shadow: 0 8px 20px rgba(84, 110, 122, 0.3); margin-top: 30px;
+            margin-bottom: 20px;
         }
         .empty-msg { text-align: center; color: #999; margin-top: 50px; line-height: 1.6; }
     </style>
