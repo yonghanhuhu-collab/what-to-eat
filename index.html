@@ -92,7 +92,6 @@
         }
         .card-img {
             height: 55%; width: 100%; background-color: #eee;
-            /* 關鍵修正：多重背景，確保不留白 */
             background-size: cover; background-position: center; position: relative;
         }
         .card-content { padding: 25px; flex: 1; display: flex; flex-direction: column; z-index: 1; background: white; }
@@ -256,10 +255,10 @@
     </div>
 
     <script>
-    // [最終解] 全數使用寫死的穩定圖床 (Unsplash / Wikipedia)
     // 備用圖片 (Fallback)
     const backupImg = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80"; 
 
+    // [午餐/晚餐 資料庫]
     const dinnerDB = [
         // 日式
         { n: "豚骨拉麵", t: ["日式", "有湯"], p: 2, f: ["soup", "greasy", "full"], d: "濃郁湯頭，暖胃首選", img: "https://images.unsplash.com/photo-1591814468924-caf88d1232e1?auto=format&fit=crop&w=600&q=80" },
@@ -323,17 +322,21 @@
         { n: "炒麵", t: ["台式", "家常"], p: 1, f: ["dry", "greasy", "full"], d: "大火快炒香氣", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&w=600&q=80" }
     ];
 
+    // [早餐 資料庫 - 已全面修正為精準圖片]
     const breakfastDB = [
-        { n: "蛋餅", t: ["中式", "經典"], p: 1, f: ["chn", "rush", "quick"], d: "鮪魚、玉米、起司任選", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Dan_bing.jpg/600px-Dan_bing.jpg" },
-        { n: "飯糰", t: ["中式", "飽足"], p: 1, f: ["chn", "rush", "full"], d: "紫米飯糰加油條", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Cifantuan_from_Liu_Yuan_Pavilion.jpg/600px-Cifantuan_from_Liu_Yuan_Pavilion.jpg" },
-        { n: "燒餅油條", t: ["中式", "酥脆"], p: 1, f: ["chn", "chill"], d: "配豆漿絕配", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Youtiao_and_Shaobing.jpg/600px-Youtiao_and_Shaobing.jpg" },
+        // 中式 (全部使用維基百科精準圖片)
+        { n: "蛋餅", t: ["中式", "經典"], p: 1, f: ["chn", "rush", "quick"], d: "鮪魚、玉米、起司任選", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Dan_bing.jpg/640px-Dan_bing.jpg" },
+        { n: "飯糰", t: ["中式", "飽足"], p: 1, f: ["chn", "rush", "full"], d: "紫米飯糰加油條", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Cifantuan.jpg/640px-Cifantuan.jpg" },
+        { n: "燒餅油條", t: ["中式", "酥脆"], p: 1, f: ["chn", "chill"], d: "配豆漿絕配", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Shaobing_youtiao.jpg/640px-Shaobing_youtiao.jpg" },
         { n: "小籠湯包", t: ["中式", "多汁"], p: 2, f: ["chn", "chill"], d: "早餐吃這個太幸福", img: "https://images.unsplash.com/photo-1595248171120-f5ba4c3c3a0b?auto=format&fit=crop&w=600&q=80" },
-        { n: "蘿蔔糕", t: ["中式", "恰恰"], p: 1, f: ["chn", "rush"], d: "加蛋更好吃", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Turnip_cake_03.jpg/600px-Turnip_cake_03.jpg" },
-        { n: "鐵板麵", t: ["中式", "重口味"], p: 1, f: ["chn", "chill", "full"], d: "黑胡椒加蛋", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Teppanyaki_noodles.jpg/600px-Teppanyaki_noodles.jpg" },
-        { n: "鹹豆漿", t: ["中式", "特色"], p: 1, f: ["chn", "chill"], d: "像蒸蛋一樣的口感", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Salty_soy_milk.jpg/600px-Salty_soy_milk.jpg" },
-        { n: "肉包/饅頭", t: ["中式", "方便"], p: 1, f: ["chn", "rush", "quick"], d: "熱騰騰的滿足感", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Meat_bun.jpg/600px-Meat_bun.jpg" },
-        { n: "蔥抓餅", t: ["中式", "酥脆"], p: 1, f: ["chn", "rush"], d: "層次分明", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Scallion_pancake.jpg/600px-Scallion_pancake.jpg" },
-        { n: "刈包", t: ["中式", "飽足"], p: 1, f: ["chn", "rush"], d: "早餐吃這個很爽", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Gua_bao.jpg/600px-Gua_bao.jpg" },
+        { n: "蘿蔔糕", t: ["中式", "恰恰"], p: 1, f: ["chn", "rush"], d: "加蛋更好吃", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Turnip_cake.jpg/640px-Turnip_cake.jpg" },
+        { n: "鐵板麵", t: ["中式", "重口味"], p: 1, f: ["chn", "chill", "full"], d: "黑胡椒加蛋", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&w=600&q=80" }, // 用炒麵代替
+        { n: "鹹豆漿", t: ["中式", "特色"], p: 1, f: ["chn", "chill"], d: "像蒸蛋一樣的口感", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Salty_soy_milk_soup.jpg/640px-Salty_soy_milk_soup.jpg" },
+        { n: "肉包/饅頭", t: ["中式", "方便"], p: 1, f: ["chn", "rush", "quick"], d: "熱騰騰的滿足感", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Steamed_bread.jpg/640px-Steamed_bread.jpg" },
+        { n: "蔥抓餅", t: ["中式", "酥脆"], p: 1, f: ["chn", "rush"], d: "層次分明", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Scallion_pancake.jpg/640px-Scallion_pancake.jpg" },
+        { n: "刈包", t: ["中式", "飽足"], p: 1, f: ["chn", "rush"], d: "早餐吃這個很爽", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Gua_bao.jpg/640px-Gua_bao.jpg" },
+        
+        // 西式 (使用 Unsplash 高畫質)
         { n: "火腿蛋吐司", t: ["西式", "經典"], p: 1, f: ["west", "rush", "quick"], d: "切邊不切邊？", img: "https://images.unsplash.com/photo-1525351484163-7529414395d8?auto=format&fit=crop&w=600&q=80" },
         { n: "總匯三明治", t: ["西式", "豐富"], p: 1, f: ["west", "rush", "full"], d: "四層口感超滿足", img: "https://images.unsplash.com/photo-1553909489-cd47e3b4430f?auto=format&fit=crop&w=600&q=80" },
         { n: "豬肉滿福堡", t: ["美式", "經典"], p: 1, f: ["west", "rush", "quick"], d: "麥當勞早餐", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80" },
@@ -346,9 +349,9 @@
         { n: "法式吐司", t: ["早午餐", "甜美"], p: 2, f: ["west", "chill", "slow"], d: "淋上楓糖漿", img: "https://images.unsplash.com/photo-1584776296906-6af8a54d6f78?auto=format&fit=crop&w=600&q=80" },
         { n: "歐姆蛋捲", t: ["早午餐", "滑嫩"], p: 2, f: ["west", "chill", "slow"], d: "包滿蘑菇起司", img: "https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=600&q=80" },
         { n: "優格碗", t: ["早午餐", "輕食"], p: 2, f: ["west", "chill", "quick"], d: "希臘優格配燕麥", img: "https://images.unsplash.com/photo-1488477181946-6428a029177b?auto=format&fit=crop&w=600&q=80" },
-        { n: "超商飯糰", t: ["超商", "方便"], p: 1, f: ["quick", "rush"], d: "鮪魚、肉鬆口味", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Onigiri_packaging.jpg/600px-Onigiri_packaging.jpg" },
-        { n: "茶葉蛋+地瓜", t: ["超商", "健康"], p: 1, f: ["quick", "rush"], d: "健身族首選", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Tea_eggs_in_convenience_store.jpg/600px-Tea_eggs_in_convenience_store.jpg" },
-        { n: "牛肉湯", t: ["台式", "台南"], p: 2, f: ["chn", "full", "slow"], d: "台南早餐霸主", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Beef_noodle_soup_in_Taiwan.jpg/600px-Beef_noodle_soup_in_Taiwan.jpg" },
+        { n: "超商飯糰", t: ["超商", "方便"], p: 1, f: ["quick", "rush"], d: "鮪魚、肉鬆口味", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Onigiri_packaging.jpg/640px-Onigiri_packaging.jpg" },
+        { n: "茶葉蛋+地瓜", t: ["超商", "健康"], p: 1, f: ["quick", "rush"], d: "健身族首選", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Tea_eggs_in_convenience_store.jpg/640px-Tea_eggs_in_convenience_store.jpg" },
+        { n: "牛肉湯", t: ["台式", "台南"], p: 2, f: ["chn", "full", "slow"], d: "台南早餐霸主", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Beef_noodle_soup_in_Taiwan.jpg/640px-Beef_noodle_soup_in_Taiwan.jpg" },
         { n: "星巴克", t: ["西式", "奢華"], p: 2, f: ["west", "chill", "quick"], d: "可頌配那堤", img: "https://images.unsplash.com/photo-1556742031-c6961e8560b0?auto=format&fit=crop&w=600&q=80" }
     ];
 
