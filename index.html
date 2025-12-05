@@ -26,7 +26,7 @@
             height: 100%; overflow: hidden; display: flex; flex-direction: column; height: 100dvh;
         }
 
-        /* 2. 頂部導航列 */
+        /* 2. UI 元件 */
         .header {
             padding: 15px 25px; display: flex; justify-content: space-between; align-items: center;
             font-weight: 900; letter-spacing: 1px; color: #5F7D8B;
@@ -49,7 +49,7 @@
         .view.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 4. 選項按鈕 */
+        /* 4. 按鈕樣式 */
         .question-title { 
             font-size: 24px; font-weight: 900; color: #455A64; 
             margin-bottom: 20px; margin-top: 10px; text-align: center; flex-shrink: 0;
@@ -63,7 +63,6 @@
         }
         .option-btn:active { transform: scale(0.98); background: #f0f0f0; }
 
-        /* 5. 首頁入口 */
         .mode-btn {
             width: 100%; max-width: 340px; height: 160px;
             background: white; border-radius: 24px;
@@ -79,7 +78,7 @@
         .mode-btn.morning { border-color: #FFD93D; background: linear-gradient(to bottom right, #fff, #FFFDE7); }
         .mode-btn.night { border-color: #5F7D8B; background: linear-gradient(to bottom right, #fff, #ECEFF1); }
 
-        /* 6. 卡片設計 - 重點：背景圖設定 */
+        /* 5. 卡片與圖片 */
         .card-container {
             width: 100%; max-width: 340px; aspect-ratio: 3/4.5;
             position: relative; perspective: 1000px; flex-shrink: 0; margin: auto 0;
@@ -92,8 +91,13 @@
         }
         .card-img {
             height: 55%; width: 100%; background-color: #eee;
-            /* 這裡設定背景尺寸，讓備用圖也能漂亮顯示 */
             background-size: cover; background-position: center; position: relative;
+            /* 預設顯示載入中 */
+            display: flex; align-items: center; justify-content: center;
+            color: #999; font-size: 14px; font-weight: bold;
+        }
+        .card-img::after {
+            content: attr(data-status);
         }
         .card-content { padding: 25px; flex: 1; display: flex; flex-direction: column; z-index: 1; background: white; }
         .card-title { font-size: 26px; font-weight: 900; margin-bottom: 10px; color: #333; }
@@ -101,7 +105,6 @@
         .tag { font-size: 12px; background: #F5F7F9; color: #607D8B; padding: 5px 10px; border-radius: 8px; font-weight: 600; }
         .desc { font-size: 15px; color: var(--text-sub); line-height: 1.5; flex: 1; }
 
-        /* 7. 篩選標籤 */
         .filter-tags { 
             display: flex; gap: 10px; margin-top: auto; padding-top: 15px;
             overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; width: 100%;
@@ -115,7 +118,6 @@
         }
         .filter-chip:active { background: #ffebee; color: var(--primary); border-color: var(--primary); }
 
-        /* 8. 底部功能鍵 */
         .action-bar {
             display: flex; gap: 25px; margin-top: 20px;
             width: 100%; max-width: 340px; justify-content: center; padding-bottom: 20px;
@@ -130,7 +132,6 @@
         .btn-like { color: var(--primary); background: #FFF5F5; }
         .big-btn:active { transform: scale(1.1); }
 
-        /* 9. 決選與結果頁 */
         .podium-list { width: 100%; max-width: 360px; }
         .podium-item {
             background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px;
@@ -169,7 +170,7 @@
             box-shadow: 0 8px 20px rgba(84, 110, 122, 0.3); margin-top: 30px; margin-bottom: 20px;
         }
     </style>
-    </head>
+</head>
 <body>
 
     <div class="header">
@@ -256,25 +257,7 @@
     </div>
 
     <script>
-    // [設定] 分類備用圖片 (Smart Category Backups)
-    // 當 AI 還在算圖時，先顯示這些，不要只顯示沙拉
-    // 圖片來源：Placehold.co (純色+文字) -> 速度最快，絕對不破圖，且清楚標示類別
-    // 或者使用穩定的 Unsplash 抽象圖
-    
-    // 這裡我們用 Unsplash 的穩定圖作為分類底圖，比純色好看
-    const categoryBackups = {
-        'noodle': 'https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&w=600&q=60', // 麵
-        'rice': 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=600&q=60',   // 飯
-        'soup': 'https://images.unsplash.com/photo-1547592166-23acbe3a624b?auto=format&fit=crop&w=600&q=60',   // 湯
-        'meat': 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=600&q=60',   // 肉
-        'dessert': 'https://images.unsplash.com/photo-1563729768-6af584667808?auto=format&fit=crop&w=600&q=60',// 甜點
-        'drink': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=600&q=60',  // 飲料
-        'breakfast': 'https://images.unsplash.com/photo-1533089862017-54148d18ec03?auto=format&fit=crop&w=600&q=60', // 早餐
-        'fastfood': 'https://images.unsplash.com/photo-1561758033-d8f3c60548dd?auto=format&fit=crop&w=600&q=60', // 速食
-        'default': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=60' // 預設沙拉
-    };
-
-    // [資料庫] 不再放固定連結，只放資料，圖片由程式生成
+    // [資料庫] 只保留資料，不寫死圖片，全部即時搜尋
     const dinnerDB = [
         { n: "豚骨拉麵", t: ["日式", "有湯"], p: 2, f: ["soup", "greasy", "full"], d: "濃郁湯頭，暖胃首選" },
         { n: "日式沾麵", t: ["日式", "Q彈"], p: 2, f: ["dry", "full"], d: "濃厚醬汁吸附麵條" },
@@ -368,22 +351,26 @@
         currentIndex: 0
     };
 
-    // [核心功能] 取得分類備用圖
-    function getBackupImage(item) {
-        // 先檢查名稱
-        const name = item.n;
-        const tags = item.t.join(' '); // 轉成字串方便檢查
-        const desc = item.d;
-
-        if (name.includes('麵') || tags.includes('麵')) return categoryBackups.noodle;
-        if (name.includes('飯') || name.includes('丼') || tags.includes('飯')) return categoryBackups.rice;
-        if (tags.includes('有湯') || tags.includes('鍋') || name.includes('湯') || name.includes('鍋')) return categoryBackups.soup;
-        if (name.includes('排') || name.includes('肉') || name.includes('雞') || name.includes('鴨')) return categoryBackups.meat;
-        if (tags.includes('甜點') || tags.includes('甜食') || name.includes('豆花')) return categoryBackups.dessert;
-        if (tags.includes('速食') || name.includes('堡') || name.includes('薯') || name.includes('雞塊')) return categoryBackups.fastfood;
-        if (state.mode === 'breakfast' || tags.includes('早午餐') || tags.includes('西式')) return categoryBackups.breakfast;
-        
-        return categoryBackups.default;
+    // [核心] 真實的維基百科圖片搜尋
+    async function searchWikiImage(keyword) {
+        try {
+            // 呼叫維基百科 API，限制取得一張縮圖
+            const url = `https://zh.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&titles=${keyword}&pithumbsize=500&origin=*`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            const pages = data.query.pages;
+            const pageId = Object.keys(pages)[0];
+            
+            if (pageId !== "-1" && pages[pageId].thumbnail) {
+                return pages[pageId].thumbnail.source;
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.error("Wiki search failed", error);
+            return null;
+        }
     }
 
     function selectMode(mode) {
@@ -443,7 +430,8 @@
         state.currentIndex = 0;
     }
 
-    function renderCard() {
+    // 渲染卡片：改為 async 以等待圖片搜尋
+    async function renderCard() {
         const container = document.getElementById('cardStack');
         container.innerHTML = '';
         
@@ -457,13 +445,9 @@
         const card = document.createElement('div');
         card.className = 'food-card';
         
-        // 核心邏輯：AI 生成主圖 + 分類備用圖
-        const aiImg = `https://image.pollinations.ai/prompt/delicious ${item.n} food close up photo --nologo`;
-        const backupImg = getBackupImage(item);
-
-        // 使用多重背景：如果 AI 圖還在跑，就先顯示備用圖
+        // 初始狀態：顯示載入中
         card.innerHTML = `
-            <div class="card-img" style="background-image: url('${aiImg}'), url('${backupImg}')"></div>
+            <div class="card-img" id="currentCardImg" data-status="🔍 覓食中..."></div>
             <div class="card-content">
                 <div class="card-title">${item.n}</div>
                 <div class="tags">
@@ -472,7 +456,7 @@
                 </div>
                 <div class="desc">${item.d}</div>
                 <div class="filter-tags">
-                    ${state.mode === 'regular' ? `
+                     ${state.mode === 'regular' ? `
                         <div class="filter-chip" onclick="quickFilter('greasy')"><i class="fas fa-ban"></i> 太油膩</div>
                         <div class="filter-chip" onclick="quickFilter('spicy')"><i class="fas fa-pepper-hot"></i> 不吃辣</div>
                         <div class="filter-chip" onclick="quickFilter('full')"><i class="fas fa-bread-slice"></i> 這太飽</div>
@@ -485,11 +469,34 @@
             </div>
         `;
         container.appendChild(card);
+
+        // 開始搜尋圖片
+        let imgUrl = item.cachedUrl; // 看看有沒有快取
+        if (!imgUrl) {
+            imgUrl = await searchWikiImage(item.n);
+        }
         
-        // 預先觸發下一張的 AI 生成
+        // 萬一維基百科也沒圖，用一張通用美食圖當備案
+        if (!imgUrl) {
+            imgUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80';
+        }
+
+        // 更新圖片
+        const imgDiv = document.getElementById('currentCardImg');
+        if(imgDiv) {
+            imgDiv.style.backgroundImage = `url('${imgUrl}')`;
+            imgDiv.innerHTML = ''; // 清除文字
+        }
+        
+        // 存起來給決選頁用
+        item.finalImg = imgUrl;
+
+        // 預載下一張 (偷偷先去搜尋下一張圖)
         if (state.currentIndex + 1 < state.candidates.length) {
-            const nextName = state.candidates[state.currentIndex + 1].n;
-            new Image().src = `https://image.pollinations.ai/prompt/delicious ${nextName} food close up photo --nologo`;
+            const nextItem = state.candidates[state.currentIndex + 1];
+            searchWikiImage(nextItem.n).then(url => {
+                if(url) nextItem.cachedUrl = url;
+            });
         }
     }
 
@@ -538,11 +545,9 @@
             div.className = 'podium-item';
             div.id = `podium-${index}`; 
             
-            const aiImg = `https://image.pollinations.ai/prompt/delicious ${item.n} food close up photo --nologo`;
-            const backupImg = getBackupImage(item);
-            
+            // 這裡直接用剛剛搜尋到的 finalImg
             div.innerHTML = `
-                <div class="p-img" style="background-image: url('${aiImg}'), url('${backupImg}')"></div>
+                <div class="p-img" style="background-image: url('${item.finalImg}')"></div>
                 <div class="p-info">
                     <div class="p-name">${item.n}</div>
                     <div class="p-desc">${item.d}</div>
@@ -587,16 +592,14 @@
         document.getElementById('v-result').classList.add('active');
         
         document.getElementById('resName').innerText = item.n;
-        const aiImg = `https://image.pollinations.ai/prompt/delicious ${item.n} food close up photo --nologo`;
-        const backupImg = getBackupImage(item);
-        document.getElementById('resImg').style.backgroundImage = `url('${aiImg}'), url('${backupImg}')`;
+        document.getElementById('resImg').style.backgroundImage = `url('${item.finalImg}')`;
         
         document.getElementById('resTags').innerHTML = 
             item.t.map(t => `<span class="tag">${t}</span>`).join('') +
             `<span class="tag" style="background:#FFF3E0;color:#F57C00">${'$'.repeat(item.p)}</span>`;
 
         const query = encodeURIComponent(item.n + " 附近");
-        document.getElementById('resLink').href = `https://www.google.com/maps/search/?api=1&query=${query}`;
+        document.getElementById('resLink').href = `https://www.google.com/maps/search/${query}`;
     }
 
     function shuffle(array) {
