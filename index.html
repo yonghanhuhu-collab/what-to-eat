@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>WHAT TO EAT</title>
+    <title>今天吃什麼？</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -13,7 +13,7 @@
             --text-main: #333333;
             --text-sub: #777777;
             --primary: #FF6B6B;
-            --secondary: #4ECDC4;
+            --highlight: #FFD93D; /* 抽獎選中時的高亮色 */
             --shadow: 0 10px 30px rgba(0,0,0,0.08);
             --radius: 24px;
         }
@@ -23,12 +23,8 @@
         body { 
             margin: 0; padding: 0; font-family: 'Noto Sans TC', sans-serif; 
             background: var(--bg); color: var(--text-main); 
-            /* 修改：改為 100% 確保相容性 */
-            height: 100%;
-            /* 修改：移除 overflow: hidden 以防止內容完全鎖死，或交由 .view 控制 */
-            overflow: hidden; 
+            height: 100%; overflow: hidden; 
             display: flex; flex-direction: column;
-            /* 修正 iOS 100vh 問題 */
             height: 100dvh;
         }
 
@@ -37,59 +33,37 @@
             padding: 15px 25px; display: flex; justify-content: space-between; align-items: center;
             font-weight: 900; letter-spacing: 1px; color: #5F7D8B;
             padding-top: max(20px, env(safe-area-inset-top));
-            /* 確保 Header 不會被壓縮 */
-            flex-shrink: 0; 
-            background: var(--bg);
-            z-index: 10;
+            flex-shrink: 0; background: var(--bg); z-index: 10;
         }
         .heart-counter {
             background: #fff; padding: 6px 14px; border-radius: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); color: var(--primary); font-weight: bold; font-size: 14px;
         }
 
-        /* === View Container (修正重點) === */
+        /* === View Container === */
         .view {
-            flex: 1; 
-            display: none; 
-            flex-direction: column; 
-            align-items: center; 
-            /* 修改：改為靠上對齊，避免置中導致頭尾被切 */
-            justify-content: flex-start;
-            padding: 20px; 
-            position: relative; 
-            width: 100%;
+            flex: 1; display: none; flex-direction: column; 
+            align-items: center; justify-content: flex-start;
+            padding: 20px; position: relative; width: 100%;
             animation: fadeIn 0.4s ease;
-            /* 修改：允許內容過長時滑動 */
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            /* 修改：增加底部空間，避免被手機 Home Bar 擋住 */
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
             padding-bottom: max(60px, env(safe-area-inset-bottom));
         }
         .view.active { display: flex; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* === Wizard (Questions) (修正重點) === */
+        /* === Wizard Buttons === */
         .question-title { 
-            font-size: 24px; 
-            font-weight: 900; 
-            color: #455A64; 
-            /* 縮小間距 */
-            margin-bottom: 20px; 
-            margin-top: 10px;
-            text-align: center; 
-            flex-shrink: 0;
+            font-size: 24px; font-weight: 900; color: #455A64; 
+            margin-bottom: 20px; margin-top: 10px; text-align: center; flex-shrink: 0;
         }
         .option-btn {
             width: 100%; max-width: 340px; background: white; 
-            /* 縮小內距讓畫面塞得下更多 */
-            padding: 16px; 
-            margin-bottom: 12px; 
-            border-radius: 16px;
+            padding: 16px; margin-bottom: 12px; border-radius: 16px;
             font-size: 17px; font-weight: 700; text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer;
-            transition: transform 0.1s, background 0.2s; border: 2px solid transparent;
-            flex-shrink: 0;
+            transition: transform 0.1s, background 0.2s; border: 2px solid transparent; flex-shrink: 0;
         }
         .option-btn:active { transform: scale(0.98); background: #f0f0f0; }
 
@@ -97,9 +71,7 @@
         .card-container {
             width: 100%; max-width: 340px; aspect-ratio: 3/4.5;
             position: relative; perspective: 1000px;
-            /* 讓卡片區域在小螢幕也能縮放 */
-            flex-shrink: 0; 
-            margin: auto 0;
+            flex-shrink: 0; margin: auto 0;
         }
         .food-card {
             position: absolute; inset: 0; background: white; border-radius: var(--radius);
@@ -114,17 +86,14 @@
             position: relative;
         }
         .card-img::before {
-            content: 'Loading...'; display: flex; align-items: center; justify-content: center;
+            content: ''; display: flex; align-items: center; justify-content: center;
             position: absolute; inset: 0; color: #999; font-size: 12px; z-index: 0;
         }
         
         .card-content { padding: 25px; flex: 1; display: flex; flex-direction: column; z-index: 1; background: white; }
         .card-title { font-size: 26px; font-weight: 900; margin-bottom: 10px; color: #333; }
         .tags { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .tag { 
-            font-size: 12px; background: #F5F7F9; color: #607D8B; 
-            padding: 5px 10px; border-radius: 8px; font-weight: 600; 
-        }
+        .tag { font-size: 12px; background: #F5F7F9; color: #607D8B; padding: 5px 10px; border-radius: 8px; font-weight: 600; }
         .desc { font-size: 15px; color: var(--text-sub); line-height: 1.5; flex: 1; }
         
         /* Filter Chips */
@@ -139,8 +108,7 @@
         /* Action Buttons */
         .action-bar {
             display: flex; gap: 25px; margin-top: 20px;
-            width: 100%; max-width: 340px; justify-content: center;
-            padding-bottom: 20px;
+            width: 100%; max-width: 340px; justify-content: center; padding-bottom: 20px;
         }
         .big-btn {
             width: 65px; height: 65px; border-radius: 50%;
@@ -152,14 +120,23 @@
         .btn-like { color: var(--primary); background: #FFF5F5; }
         .big-btn:active { transform: scale(1.1); }
 
-        /* === Podium === */
+        /* === Podium (決選清單) === */
         .podium-list { width: 100%; max-width: 360px; }
         .podium-item {
             background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px;
             display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.1s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: pointer; transition: all 0.2s;
+            border: 3px solid transparent; /* 預留邊框位置以免跳動 */
         }
-        .podium-item:active { transform: scale(0.98); }
+        
+        /* 抽獎時的高亮樣式 */
+        .podium-item.highlight {
+            border-color: var(--primary);
+            background-color: #FFF5F5;
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.2);
+        }
+
         .p-img { width: 65px; height: 65px; border-radius: 12px; background: #eee; background-size: cover; background-position: center; flex-shrink: 0; }
         .p-info { flex: 1; }
         .p-name { font-weight: 800; font-size: 17px; margin-bottom: 4px; color: #333; }
@@ -169,9 +146,11 @@
             margin-top: 25px; width: 100%; max-width: 360px;
             background: white; border: 2px solid #eee; padding: 16px;
             border-radius: 30px; font-weight: 800; color: #5F7D8B; font-size: 16px;
-            margin-bottom: 40px;
+            margin-bottom: 40px; cursor: pointer;
+            transition: background 0.2s;
         }
-
+        .dice-btn:active { background: #f5f5f5; }
+        
         /* === Result === */
         .result-img-circle {
             width: 220px; height: 220px; border-radius: 50%; 
@@ -184,8 +163,7 @@
             padding: 18px; border-radius: 30px; text-decoration: none;
             display: flex; align-items: center; justify-content: center; gap: 10px;
             font-weight: bold; font-size: 16px;
-            box-shadow: 0 8px 20px rgba(84, 110, 122, 0.3); margin-top: 30px;
-            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(84, 110, 122, 0.3); margin-top: 30px; margin-bottom: 20px;
         }
         .empty-msg { text-align: center; color: #999; margin-top: 50px; line-height: 1.6; }
     </style>
@@ -193,7 +171,7 @@
 <body>
 
     <div class="header">
-        <div>WHAT TO EAT</div>
+        <div>今天吃什麼</div>
         <div class="heart-counter" id="counter" style="display:none;">❤️ 0 / 3</div>
     </div>
 
@@ -205,7 +183,7 @@
     </div>
 
     <div id="v-mood" class="view">
-        <div class="question-title">今天心情/天氣？</div>
+        <div class="question-title">想吃哪種類型？</div>
         <div class="option-btn" onclick="nextStep('mood', 'soup')">🥣 想喝熱湯</div>
         <div class="option-btn" onclick="nextStep('mood', 'dry')">🥢 想吃乾的</div>
         <div class="option-btn" onclick="nextStep('mood', 'spicy')">🌶️ 想吃辣！</div>
@@ -213,7 +191,7 @@
     </div>
 
     <div id="v-budget" class="view">
-        <div class="question-title">今天預算如何？</div>
+        <div class="question-title">預算範圍？</div>
         <div class="option-btn" onclick="nextStep('budget', 1)">💰 便宜簡單吃 ($)</div>
         <div class="option-btn" onclick="nextStep('budget', 2)">💵 一般聚餐價位 ($$)</div>
         <div class="option-btn" onclick="nextStep('budget', 3)">💎 豪華大餐 ($$$)</div>
@@ -230,14 +208,14 @@
 
     <div id="v-podium" class="view">
         <div class="question-title">決選擂台 👑</div>
-        <div style="text-align:center; color:#999; margin-bottom:25px; font-size:14px;">這 3 家你都想吃，選一家最想去的！</div>
+        <div style="text-align:center; color:#999; margin-bottom:25px; font-size:14px;">這 3 家選一家，交給命運！</div>
         <div class="podium-list" id="podiumList"></div>
-        <button class="dice-btn" onclick="randomPick()"><i class="fas fa-dice"></i> 幫我選！</button>
+        <button class="dice-btn" id="startBtn" onclick="startRoulette()"><i class="fas fa-dice"></i> 幫我選！</button>
     </div>
 
     <div id="v-result" class="view">
         <div class="result-img-circle" id="resImg"></div>
-        <div style="font-size:14px; color:#999; margin-bottom:5px;">今晚就吃這個！</div>
+        <div style="font-size:14px; color:#999; margin-bottom:5px;">命運決定吃這個！</div>
         <h1 style="font-size:32px; margin:0; margin-bottom:20px; color:#333;" id="resName">Result</h1>
         <div class="tags" id="resTags" style="justify-content:center;"></div>
         
@@ -248,117 +226,215 @@
     </div>
 
     <script>
+
         // 資料庫：i 代表 image keyword，用於自動抓圖
+
         const db = [
+
             { n: "豚骨拉麵", t: ["日式", "有湯"], p: 2, f: ["soup", "greasy", "full"], d: "濃郁湯頭，暖胃首選", i: "ramen" },
+
             { n: "日式沾麵", t: ["日式", "Q彈"], p: 2, f: ["dry", "full"], d: "濃厚醬汁吸附麵條", i: "ramen" },
+
             { n: "日式牛丼", t: ["日式", "快速"], p: 1, f: ["dry", "full"], d: "甜鹹醬汁拌飯", i: "gyudon" },
+
             { n: "炸豬排定食", t: ["日式", "飽足"], p: 2, f: ["dry", "greasy", "full"], d: "外酥內嫩厚切豬排", i: "pork_cutlet" },
+
             { n: "親子丼", t: ["日式", "滑嫩"], p: 1, f: ["dry", "full"], d: "雞肉與蛋的完美結合", i: "donburi" },
+
             { n: "迴轉壽司", t: ["日式", "清爽"], p: 2, f: ["dry", "light"], d: "多樣化選擇", i: "sushi" },
+
             { n: "日式咖哩飯", t: ["日式", "濃郁"], p: 2, f: ["dry", "full"], d: "甘甜濃郁的日式風味", i: "curry_rice" },
+
             { n: "天婦羅丼", t: ["日式", "酥脆"], p: 2, f: ["dry", "greasy", "full"], d: "滿滿炸蝦與蔬菜", i: "tempura" },
+
             { n: "日式燒肉", t: ["日式", "聚餐"], p: 3, f: ["dry", "greasy", "full"], d: "自己烤肉的樂趣", i: "yakiniku" },
+
             { n: "壽喜燒", t: ["日式", "鍋物"], p: 3, f: ["soup", "full"], d: "甜鹹醬汁涮牛肉", i: "sukiyaki" },
+
             { n: "烏龍麵", t: ["日式", "Q彈"], p: 1, f: ["soup", "light"], d: "簡單清爽的柴魚湯頭", i: "udon" },
+
             { n: "蕎麥麵", t: ["日式", "涼爽"], p: 1, f: ["dry", "light"], d: "夏日消暑首選", i: "soba_noodles" },
+
             { n: "章魚燒", t: ["日式", "小吃"], p: 1, f: ["dry", "light"], d: "外酥內軟的小點心", i: "takoyaki" },
+
             { n: "鰻魚飯", t: ["日式", "高級"], p: 3, f: ["dry", "full"], d: "炭烤香氣，補元氣", i: "unagi" },
 
+
+
             { n: "紅燒牛肉麵", t: ["台式", "經典"], p: 2, f: ["soup", "spicy", "full"], d: "台灣人最愛的經典", i: "beef_noodle" },
+
             { n: "滷肉飯", t: ["台式", "必吃"], p: 1, f: ["dry", "greasy", "full"], d: "國民美食，肥瘦適中", i: "braised_pork_rice" },
+
             { n: "小籠包", t: ["中式", "爆漿"], p: 2, f: ["dry", "light"], d: "皮薄餡多湯汁鮮美", i: "xiaolongbao" },
+
             { n: "鍋貼/水餃", t: ["台式", "方便"], p: 1, f: ["dry", "greasy", "full"], d: "酥脆外皮與多汁內餡", i: "dumplings" },
+
             { n: "麻辣火鍋", t: ["中式", "聚餐"], p: 3, f: ["soup", "spicy", "greasy", "full"], d: "香辣過癮，適合多人", i: "hotpot" },
+
             { n: "酸辣湯餃", t: ["台式", "開胃"], p: 1, f: ["soup", "spicy", "full"], d: "酸辣夠味，飽足感夠", i: "sour_soup" },
+
             { n: "火雞肉飯", t: ["台式", "嘉義"], p: 1, f: ["dry", "greasy", "full"], d: "雞油香氣十足", i: "chicken_rice" },
+
             { n: "台式熱炒", t: ["台式", "聚餐"], p: 2, f: ["dry", "greasy", "full"], d: "大火快炒，配啤酒", i: "stir_fry" },
+
             { n: "排骨飯", t: ["台式", "便當"], p: 1, f: ["dry", "greasy", "full"], d: "古早味炸排骨", i: "pork_chop" },
+
             { n: "清粥小菜", t: ["台式", "清淡"], p: 2, f: ["soup", "light"], d: "暖胃又清爽", i: "congee" },
+
             { n: "蚵仔煎", t: ["台式", "小吃"], p: 1, f: ["dry", "greasy", "light"], d: "夜市必吃美食", i: "oyster_omelet" },
+
             { n: "臭臭鍋", t: ["台式", "小火鍋"], p: 1, f: ["soup", "spicy", "full"], d: "平價享受，料多實在", i: "hotpot" },
+
             { n: "薑母鴨", t: ["台式", "進補"], p: 3, f: ["soup", "full"], d: "冬天進補首選", i: "ginger_duck" },
+
             { n: "擔仔麵", t: ["台式", "傳統"], p: 1, f: ["soup", "light"], d: "肉燥香氣撲鼻", i: "noodle_soup" },
 
+
+
             { n: "美式漢堡", t: ["美式", "大口吃"], p: 2, f: ["dry", "greasy", "full"], d: "多汁牛肉排配起司", i: "burger" },
+
             { n: "義大利麵", t: ["義式", "多樣"], p: 2, f: ["dry", "full"], d: "紅醬白醬青醬任選", i: "pasta" },
+
             { n: "窯烤披薩", t: ["義式", "分享"], p: 2, f: ["dry", "greasy", "full"], d: "薄脆餅皮，牽絲起司", i: "pizza" },
+
             { n: "牛排", t: ["西式", "慶祝"], p: 3, f: ["dry", "greasy", "full"], d: "大口吃肉的滿足感", i: "steak" },
+
             { n: "潛艇堡", t: ["美式", "健康"], p: 1, f: ["dry", "light"], d: "蔬菜滿滿，清爽無負擔", i: "sandwich" },
+
             { n: "早午餐", t: ["西式", "悠閒"], p: 2, f: ["dry", "light"], d: "班尼迪克蛋與法式吐司", i: "brunch" },
+
             { n: "炸雞", t: ["美式", "罪惡"], p: 2, f: ["dry", "greasy", "full"], d: "酥脆外皮多汁雞肉", i: "fried_chicken" },
+
             { n: "燉飯", t: ["義式", "濃郁"], p: 2, f: ["dry", "full"], d: "米心微硬口感", i: "risotto" },
+
             { n: "墨西哥捲餅", t: ["異國", "微辣"], p: 1, f: ["dry", "spicy", "light"], d: "莎莎醬配酪梨", i: "taco" },
+
             { n: "凱薩沙拉", t: ["西式", "減脂"], p: 2, f: ["dry", "light"], d: "輕食主義首選", i: "caesar_salad" },
 
+
+
             { n: "韓式炸雞", t: ["韓式", "甜辣"], p: 2, f: ["dry", "spicy", "greasy", "full"], d: "裹醬炸雞配啤酒", i: "korean_fried_chicken" },
+
             { n: "石鍋拌飯", t: ["韓式", "鍋巴"], p: 2, f: ["dry", "spicy", "full"], d: "豐富配菜拌辣醬", i: "bibimbap" },
+
             { n: "泡菜鍋", t: ["韓式", "酸辣"], p: 2, f: ["soup", "spicy", "full"], d: "酸辣開胃熱湯", i: "kimchi_stew" },
+
             { n: "銅盤烤肉", t: ["韓式", "聚餐"], p: 2, f: ["dry", "full"], d: "邊烤肉邊喝湯", i: "korean_bbq" },
+
             { n: "泰式打拋豬", t: ["泰式", "下飯"], p: 1, f: ["dry", "spicy", "greasy", "full"], d: "酸辣鹹香，白飯殺手", i: "thai_food" },
+
             { n: "越南河粉", t: ["越式", "清爽"], p: 1, f: ["soup", "light"], d: "清甜湯頭配檸檬", i: "pho" },
+
             { n: "泰式綠咖哩", t: ["泰式", "椰香"], p: 2, f: ["soup", "spicy", "full"], d: "濃郁椰奶香微辣", i: "green_curry" },
+
             { n: "月亮蝦餅", t: ["泰式", "酥脆"], p: 2, f: ["dry", "greasy", "light"], d: "外酥內Q彈", i: "thai_food" },
+
             { n: "海南雞飯", t: ["星馬", "嫩雞"], p: 1, f: ["dry", "greasy", "full"], d: "雞肉滑嫩，雞油飯香", i: "hainan_chicken" },
+
             { n: "印度咖哩", t: ["異國", "香料"], p: 2, f: ["soup", "spicy", "full"], d: "香料層次豐富配烤餅", i: "indian_curry" },
+
             
+
             // 更多補充選項...
+
             { n: "麻辣燙", t: ["中式", "個人"], p: 1, f: ["soup", "spicy", "light"], d: "想吃什麼夾什麼", i: "malatang" },
+
             { n: "鹹酥雞", t: ["台式", "宵夜"], p: 1, f: ["dry", "greasy", "light"], d: "台灣味炸物拼盤", i: "fried_chicken" },
+
             { n: "涼麵", t: ["台式", "消暑"], p: 1, f: ["dry", "light"], d: "麻醬香氣濃郁", i: "noodles" },
+
             { n: "鐵板燒", t: ["台式", "現炒"], p: 2, f: ["dry", "greasy", "full"], d: "師傅現炒青菜與主食", i: "teppanyaki" },
+
             { n: "炒飯", t: ["中式", "鑊氣"], p: 1, f: ["dry", "greasy", "full"], d: "粒粒分明", i: "fried_rice" },
+
             { n: "炒麵", t: ["台式", "家常"], p: 1, f: ["dry", "greasy", "full"], d: "大火快炒香氣", i: "fried_noodles" },
+
             { n: "米粉湯", t: ["台式", "小吃"], p: 1, f: ["soup", "light"], d: "粗米粉配黑白切", i: "rice_noodle" },
+
             { n: "肉圓", t: ["台式", "Q彈"], p: 1, f: ["dry", "greasy", "light"], d: "低溫油泡外皮Q彈", i: "meatball" },
+
             { n: "甜不辣", t: ["台式", "煮物"], p: 1, f: ["soup", "light"], d: "吃完還可以加湯", i: "oden" },
+
             { n: "藥燉排骨", t: ["台式", "夜市"], p: 1, f: ["soup", "full"], d: "湯頭甘甜中藥香", i: "soup" },
+
             { n: "關東煮", t: ["日式", "清淡"], p: 1, f: ["soup", "light"], d: "便利商店的溫暖", i: "oden" },
+
             { n: "夏威夷拌飯", t: ["美式", "生食"], p: 2, f: ["dry", "light"], d: "原型食物健康選擇", i: "poke_bowl" },
+
             { n: "燒臘便當", t: ["港式", "油雞"], p: 1, f: ["dry", "greasy", "full"], d: "蔥油配上燒鴨油雞", i: "roasted_duck" },
+
             { n: "港式點心", t: ["港式", "飲茶"], p: 2, f: ["dry", "light"], d: "燒賣、蝦餃、叉燒包", i: "dim_sum" },
+
             { n: "茶餐廳", t: ["港式", "快餐"], p: 2, f: ["dry", "greasy", "full"], d: "公仔麵、波蘿油", i: "hong_kong_food" },
+
             { n: "酸菜白肉鍋", t: ["中式", "酸爽"], p: 3, f: ["soup", "full"], d: "酸白菜配五花肉", i: "hotpot" },
+
             { n: "砂鍋魚頭", t: ["台式", "大菜"], p: 3, f: ["soup", "greasy", "full"], d: "湯頭濃郁料多", i: "fish_head_soup" },
+
             { n: "羊肉炒麵", t: ["台式", "快炒"], p: 1, f: ["dry", "greasy", "full"], d: "沙茶羊肉香氣", i: "fried_noodles" },
+
             { n: "鱔魚意麵", t: ["台式", "甜酸"], p: 2, f: ["dry", "full"], d: "台南風味", i: "noodles" },
+
             { n: "當歸鴨", t: ["台式", "溫補"], p: 1, f: ["soup", "full"], d: "湯頭甘甜", i: "duck_soup" },
+
             { n: "土魠魚羹", t: ["台式", "酥脆"], p: 1, f: ["soup", "greasy", "full"], d: "外酥內嫩魚塊", i: "fish_soup" },
+
             { n: "割包", t: ["台式", "虎咬豬"], p: 1, f: ["dry", "greasy", "light"], d: "台式漢堡", i: "bao_bun" },
+
             { n: "四神湯", t: ["台式", "溫潤"], p: 1, f: ["soup", "light"], d: "薏仁豬肚", i: "soup" },
+
             { n: "雞排", t: ["台式", "邪惡"], p: 1, f: ["dry", "greasy", "light"], d: "宵夜霸主", i: "fried_chicken_steak" },
+
             { n: "素食自助餐", t: ["素食", "健康"], p: 1, f: ["dry", "light"], d: "多樣蔬菜選擇", i: "vegetables" },
+
             { n: "IKEA餐廳", t: ["瑞典", "肉丸"], p: 2, f: ["dry", "full"], d: "肉丸與炸雞翅", i: "meatballs" },
+
             { n: "Costco熟食", t: ["美式", "便宜"], p: 1, f: ["dry", "greasy", "full"], d: "熱狗與牛肉捲", i: "hotdog" },
+
             { n: "便利商店", t: ["超商", "快速"], p: 1, f: ["dry", "full"], d: "微波即食", i: "convenience_store_food" },
+
             { n: "咖啡廳輕食", t: ["西式", "優雅"], p: 2, f: ["dry", "light"], d: "三明治配咖啡", i: "sandwich_coffee" },
+
             { n: "大戶屋", t: ["日式", "定食"], p: 2, f: ["dry", "full"], d: "家庭式日式料理", i: "japanese_food" },
+
             { n: "海底撈", t: ["火鍋", "服務"], p: 3, f: ["soup", "spicy", "full"], d: "服務第一", i: "hotpot" },
+
             { n: "鼎泰豐", t: ["中式", "精緻"], p: 3, f: ["dry", "light"], d: "世界級小籠包", i: "dumplings" },
+
             { n: "八方雲集", t: ["台式", "鍋貼"], p: 1, f: ["dry", "full"], d: "連鎖方便", i: "dumplings" },
+
             { n: "麥當勞", t: ["美式", "速食"], p: 1, f: ["dry", "greasy", "full"], d: "薯條是本體", i: "fries" },
+
             { n: "肯德基", t: ["美式", "蛋塔"], p: 2, f: ["dry", "greasy", "full"], d: "被炸雞耽誤的蛋塔店", i: "fried_chicken" },
+
             { n: "必勝客", t: ["義式", "披薩"], p: 2, f: ["dry", "greasy", "full"], d: "各種奇妙口味", i: "pizza" },
+
             { n: "路邊攤滷味", t: ["台式", "宵夜"], p: 1, f: ["dry", "light"], d: "冷滷熱滷都好吃", i: "taiwan_food" },
+
             { n: "蔥抓餅", t: ["台式", "點心"], p: 1, f: ["dry", "greasy", "light"], d: "加蛋加起司", i: "scallion_pancake" },
+
             { n: "地瓜球", t: ["台式", "Q彈"], p: 1, f: ["dry", "light"], d: "快樂的空氣感", i: "sweet_potato_balls" },
+
             { n: "沙威瑪", t: ["異國", "旋轉"], p: 1, f: ["dry", "full"], d: "旋轉烤肉削下來", i: "shawarma" },
+
             { n: "可麗餅", t: ["異國", "脆皮"], p: 1, f: ["dry", "light"], d: "鹹甜口味都有", i: "crepe" },
+
             { n: "豆花", t: ["甜點", "古早"], p: 1, f: ["soup", "light"], d: "綿密豆香配花生", i: "tofu_pudding" },
+
             { n: "燒仙草", t: ["甜點", "暖胃"], p: 1, f: ["soup", "light"], d: "冬天必喝", i: "grass_jelly" }
+
         ];
-        
-        // 擴充數據到 100+ (圖片來源改為 AI 生成以修正準確度)
+
+        // 圖片優化：改用 LoremFlickr，速度快很多，且比較不會掛掉
+        // 加入隨機參數避免快取
         const fullDB = db.map(item => ({
             name: item.n,
             tags: item.t,
             price: item.p,
             features: item.f,
             desc: item.d,
-            // 修改重點：改用 Pollinations AI 生成圖片
-            // 邏輯：使用 item.i (英文關鍵字) + "delicious food" 作為提示詞
-            // replace(/_/g, ' ') 是把關鍵字裡的底線換成空白 (如 bao_bun -> bao bun) 讓 AI 看得懂
-            img: `https://image.pollinations.ai/prompt/delicious ${item.i.replace(/_/g, ' ')} food photo close up?width=500&height=400&nologo=true&model=flux`
+            // 圖片來源更換為 LoremFlickr，格式: loremflickr.com/寬/高/關鍵字
+            img: `https://loremflickr.com/500/400/${item.i}` 
         }));
 
         let state = {
@@ -403,9 +479,13 @@
             });
 
             list.sort((a, b) => b.matchScore - a.matchScore);
-            // 隨機打亂前 40 名，確保每次都有新鮮感
             state.candidates = shuffle(list.slice(0, 40));
             state.currentIndex = 0;
+            
+            // 預載第一張圖
+            if(state.candidates.length > 0) {
+                new Image().src = state.candidates[0].img;
+            }
         }
 
         function renderCard() {
@@ -421,8 +501,9 @@
             const item = state.candidates[state.currentIndex];
             const card = document.createElement('div');
             card.className = 'food-card';
-            // 加入隨機參數避免圖片快取重複
-            const bgImg = `${item.img}?random=${Math.random()}`;
+            
+            // 加入隨機參數避免重複
+            const bgImg = `${item.img}?lock=${Math.floor(Math.random()*1000)}`; 
             
             card.innerHTML = `
                 <div class="card-img" style="background-image: url('${bgImg}')"></div>
@@ -441,6 +522,12 @@
                 </div>
             `;
             container.appendChild(card);
+
+            // 預載下一張圖 (加速體驗)
+            if (state.currentIndex + 1 < state.candidates.length) {
+                const nextImg = new Image();
+                nextImg.src = `${state.candidates[state.currentIndex + 1].img}?lock=${Math.floor(Math.random()*1000)}`;
+            }
         }
 
         function handleSwipe(isLike) {
@@ -475,39 +562,82 @@
             const list = document.getElementById('podiumList');
             list.innerHTML = '';
             
-            state.shortlist.forEach(item => {
+            state.shortlist.forEach((item, index) => {
+                // 預載這些圖片，確保結果頁顯示時不用等
+                const preloadImg = new Image();
+                preloadImg.src = `${item.img}?lock=${index}`; 
+
                 const div = document.createElement('div');
                 div.className = 'podium-item';
-                div.onclick = () => showResult(item);
+                div.id = `podium-${index}`; // 給予 ID 以便動畫控制
                 div.innerHTML = `
-                    <div class="p-img" style="background-image: url('${item.img}?random=${Math.random()}')"></div>
+                    <div class="p-img" style="background-image: url('${item.img}?lock=${index}')"></div>
                     <div class="p-info">
                         <div class="p-name">${item.name}</div>
                         <div class="p-desc">${item.desc}</div>
                     </div>
-                    <i class="fas fa-chevron-right" style="color:#ddd"></i>
                 `;
                 list.appendChild(div);
             });
         }
 
-        function randomPick() {
-            const winner = state.shortlist[Math.floor(Math.random() * state.shortlist.length)];
-            showResult(winner);
+        // === 新增：轉盤動畫邏輯 ===
+        function startRoulette() {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true; // 鎖定按鈕
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 命運運轉中...';
+            
+            let items = document.querySelectorAll('.podium-item');
+            let current = 0;
+            let speed = 100; // 初始速度 (ms)
+            let rounds = 0;
+            let totalRounds = 3; // 至少轉幾圈
+            
+            // 隨機決定贏家 (0, 1, 2)
+            const winnerIndex = Math.floor(Math.random() * state.shortlist.length);
+            
+            function step() {
+                // 清除所有高亮
+                items.forEach(el => el.classList.remove('highlight'));
+                // 高亮當前項目
+                items[current].classList.add('highlight');
+                
+                // 下一步
+                let prev = current;
+                current++;
+                if (current >= items.length) {
+                    current = 0;
+                    rounds++;
+                }
+
+                // 速度控制
+                if (rounds >= totalRounds && current === winnerIndex) {
+                    // 停止條件達成：轉夠了圈數 且 剛好停在贏家
+                    setTimeout(() => {
+                        showResult(state.shortlist[winnerIndex], winnerIndex);
+                    }, 500); // 停頓一下讓使用者看清楚贏家
+                } else {
+                    // 繼續轉，但每圈變慢一點
+                    if (rounds > 0) speed += 10; 
+                    setTimeout(step, speed);
+                }
+            }
+            
+            step(); // 開始動畫
         }
 
-        function showResult(item) {
+        function showResult(item, index) {
             document.querySelector('.view.active').classList.remove('active');
             document.getElementById('v-result').classList.add('active');
             
             document.getElementById('resName').innerText = item.name;
-            document.getElementById('resImg').style.backgroundImage = `url('${item.img}?random=${Math.random()}')`;
+            // 使用跟 podium 一樣的圖片參數，確保瀏覽器直接使用快取，不用重新下載
+            document.getElementById('resImg').style.backgroundImage = `url('${item.img}?lock=${index}')`;
             
             document.getElementById('resTags').innerHTML = 
                 item.tags.map(t => `<span class="tag">${t}</span>`).join('') +
                 `<span class="tag" style="background:#FFF3E0;color:#F57C00">${'$'.repeat(item.price)}</span>`;
 
-            // Google Maps 搜尋連結
             const query = encodeURIComponent(item.name + " 附近");
             document.getElementById('resLink').href = `https://www.google.com/maps/search/?api=1&query=${query}`;
         }
