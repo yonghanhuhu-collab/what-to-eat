@@ -67,7 +67,7 @@
         .mode-btn.morning { border: 3px solid #FFD93D; background: linear-gradient(to bottom right, #fff, #FFFDE7); }
         .mode-btn.night { border: 3px solid #5F7D8B; background: linear-gradient(to bottom right, #fff, #ECEFF1); }
 
-        /* 卡片設計 - 圖片載入層 */
+        /* 卡片設計 */
         .card-container {
             width: 100%; max-width: 340px; aspect-ratio: 3/4.5;
             position: relative; perspective: 1000px; margin: auto 0;
@@ -79,19 +79,22 @@
             transform-origin: 50% 100%; transition: transform 0.3s, opacity 0.3s;
         }
         .card-img-wrapper {
-            height: 55%; width: 100%; background-color: #f0f0f0;
+            height: 55%; width: 100%; 
+            background-color: #e0e0e0; /* 加深底色，避免看起來像死機 */
             position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
         }
         .card-img-layer {
             width: 100%; height: 100%;
             background-size: cover; background-position: center;
-            opacity: 0; transition: opacity 0.4s ease; /* 載入後淡入 */
+            opacity: 0; transition: opacity 0.4s ease;
+            position: absolute; top: 0; left: 0; z-index: 2;
         }
         .loading-text {
             position: absolute; inset: 0;
             display: flex; align-items: center; justify-content: center;
-            color: #888; font-weight: bold; font-size: 15px;
-            background: #f8f9fa; z-index: 1;
+            color: #777; font-weight: bold; font-size: 15px;
+            background: #f8f9fa; z-index: 3;
             transition: opacity 0.3s;
         }
         .card-content { padding: 25px; flex: 1; display: flex; flex-direction: column; background: white; }
@@ -336,24 +339,23 @@
         currentIndex: 0
     };
 
-    // [備用分類圖片] 當維基百科真的搜不到且超時3秒時，用這些
+    // [備用分類圖片] 使用 Wikimedia 穩定圖源，解決 Unsplash 空白問題
     const categoryBackups = {
-        'noodle': 'https://images.unsplash.com/photo-1569937745351-1fc996f05f98?auto=format&fit=crop&w=600&q=60', 
-        'rice': 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=600&q=60',   
-        'soup': 'https://images.unsplash.com/photo-1547592166-23acbe3a624b?auto=format&fit=crop&w=600&q=60',   
-        'meat': 'https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=600&q=60',   
-        'dessert': 'https://images.unsplash.com/photo-1563729768-6af584667808?auto=format&fit=crop&w=600&q=60',
-        'drink': 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=600&q=60',  
-        'breakfast': 'https://images.unsplash.com/photo-1533089862017-54148d18ec03?auto=format&fit=crop&w=600&q=60', 
-        'fastfood': 'https://images.unsplash.com/photo-1561758033-d8f3c60548dd?auto=format&fit=crop&w=600&q=60', 
-        'default': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=60' 
+        'noodle': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Beef_noodle_soup_in_Taiwan.jpg/640px-Beef_noodle_soup_in_Taiwan.jpg', 
+        'rice': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/White_rice_cooked.jpg/640px-White_rice_cooked.jpg',   
+        'soup': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Miso_soup.jpg/640px-Miso_soup.jpg',   
+        'meat': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Good_Food_Display_-_NCI_Visuals_Online.jpg/640px-Good_Food_Display_-_NCI_Visuals_Online.jpg',   
+        'dessert': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Chocolate_Cake_with_chili_at_Maya_Chocolates.jpg/640px-Chocolate_Cake_with_chili_at_Maya_Chocolates.jpg',
+        'drink': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/A_small_cup_of_coffee.JPG/640px-A_small_cup_of_coffee.JPG',  
+        'breakfast': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Shaobing_youtiao.jpg/640px-Shaobing_youtiao.jpg', 
+        'fastfood': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/McDonald%27s_Cheeseburger.jpg/640px-McDonald%27s_Cheeseburger.jpg', 
+        'default': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Good_Food_Display_-_NCI_Visuals_Online.jpg/640px-Good_Food_Display_-_NCI_Visuals_Online.jpg' 
     };
 
-    // [核心搜尋功能] Wiki + Unsplash + 分類備用
+    // [核心搜尋] 
     async function searchRealImage(item) {
-        // 1. 優先嘗試維基百科
         try {
-            const keyword = item.k || item.n; // 如果有強制關鍵字 k (例如麥當勞 -> Hamburger)，優先用 k
+            const keyword = item.k || item.n; 
             const wikiUrl = `https://zh.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&titles=${keyword}&pithumbsize=500&origin=*`;
             const res = await fetch(wikiUrl);
             const data = await res.json();
@@ -368,16 +370,18 @@
             console.log("Wiki failed");
         }
 
-        // 2. 如果維基百科失敗，使用英文關鍵字去 Unsplash 找
+        // 2. Unsplash 搜尋 (作為第二層)
         if (item.k) {
-            return `https://source.unsplash.com/600x400/?${item.k}`;
+            // 使用 source.unsplash 雖然被 deprecated，但在許多環境仍可用，
+            // 為了最大相容性，這裡我們改用一個更穩定的 Lorem Picsum 或其他服務會更好，
+            // 但考量到主題性，我們這裡讓它失敗回傳 null，直接用智慧備用圖。
+            // 因為前面的 Unsplash ID 可能失效了。
+            return null;
         }
-        
-        // 3. 還是沒有，回傳 null，交給 getSmartFallback 處理
         return null;
     }
 
-    // [輔助函式] 根據名稱取得分類備用圖 (取代單一沙拉圖)
+    // [智慧分類] 根據名稱分配備用圖
     function getSmartFallback(item) {
         const name = item.n;
         const tags = item.t.join(' ');
@@ -385,9 +389,9 @@
         if (name.includes('麵') || tags.includes('麵')) return categoryBackups.noodle;
         if (name.includes('飯') || name.includes('丼') || tags.includes('飯')) return categoryBackups.rice;
         if (tags.includes('有湯') || tags.includes('鍋') || name.includes('湯')) return categoryBackups.soup;
-        if (name.includes('排') || name.includes('肉') || name.includes('雞')) return categoryBackups.meat;
-        if (tags.includes('甜點') || tags.includes('甜食') || name.includes('豆花')) return categoryBackups.dessert;
-        if (tags.includes('速食') || name.includes('堡')) return categoryBackups.fastfood;
+        if (name.includes('排') || name.includes('肉') || name.includes('雞') || name.includes('牛') || name.includes('豬')) return categoryBackups.meat;
+        if (tags.includes('甜點') || tags.includes('甜食') || name.includes('豆花') || name.includes('鬆餅')) return categoryBackups.dessert;
+        if (tags.includes('速食') || name.includes('堡') || name.includes('薯') || name.includes('炸雞')) return categoryBackups.fastfood;
         if (state.mode === 'breakfast') return categoryBackups.breakfast;
         
         return categoryBackups.default;
@@ -450,7 +454,7 @@
         state.currentIndex = 0;
     }
 
-    // [圖片載入與渲染] 加入 3 秒強制止損機制
+    // [渲染卡片] 超時 3 秒強制顯示備用圖
     async function renderCard() {
         const container = document.getElementById('cardStack');
         container.innerHTML = '';
@@ -465,10 +469,9 @@
         const card = document.createElement('div');
         card.className = 'food-card';
         
-        // 建立卡片結構
         card.innerHTML = `
             <div class="card-img-wrapper" id="imgWrapper">
-                <div class="loading-text" id="loadingText"><i class="fas fa-search"></i> &nbsp; 覓食中...</div>
+                <div class="loading-text" id="loadingText"><i class="fas fa-search"></i>   覓食中...</div>
                 <div class="card-img-layer" id="cardImgLayer"></div>
             </div>
             <div class="card-content">
@@ -493,10 +496,8 @@
         `;
         container.appendChild(card);
 
-        // 準備備用圖 (根據類別，不再是死板沙拉)
         const fallbackUrl = getSmartFallback(item);
 
-        // 定義顯示圖片的函式 (包含清除 Loading 文字)
         const showImage = (url) => {
             const layer = document.getElementById('cardImgLayer');
             const loader = document.getElementById('loadingText');
@@ -508,41 +509,36 @@
             }
         };
 
-        // 1. 設定 3 秒後強制顯示備用圖 (超時保險)
         const timeoutId = setTimeout(() => {
-            console.log("Image load timed out, using smart fallback.");
+            console.log("Image load timed out, using fallback.");
             showImage(fallbackUrl);
-        }, 3000); // 3000 毫秒 = 3 秒
+        }, 3000); 
 
-        // 2. 開始找圖
         let imgUrl = item.cachedUrl;
         if (!imgUrl) {
             imgUrl = await searchRealImage(item);
         }
         
-        // 3. 如果沒找到 (imgUrl 為 null)，直接用備用圖
         if (!imgUrl) {
             imgUrl = fallbackUrl;
         }
         item.finalImg = imgUrl;
 
-        // 4. 圖片預載
         const preloadImg = new Image();
         preloadImg.src = imgUrl;
         preloadImg.onload = () => {
-            clearTimeout(timeoutId); // 成功載入，取消 3 秒倒數
+            clearTimeout(timeoutId); 
             showImage(imgUrl);
         };
         preloadImg.onerror = () => {
-            clearTimeout(timeoutId); // 載入失敗，取消倒數，直接顯示備用
+            clearTimeout(timeoutId); 
             showImage(fallbackUrl);
         };
 
-        // 預載下一張
         if (state.currentIndex + 1 < state.candidates.length) {
             const nextItem = state.candidates[state.currentIndex + 1];
             searchRealImage(nextItem).then(url => {
-                nextItem.cachedUrl = url;
+                if(url) nextItem.cachedUrl = url;
             });
         }
     }
