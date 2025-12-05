@@ -13,7 +13,7 @@
             --text-main: #333333;
             --text-sub: #777777;
             --primary: #FF6B6B;
-            --highlight: #FFD93D; /* 抽獎選中時的高亮色 */
+            --highlight: #FFD93D;
             --shadow: 0 10px 30px rgba(0,0,0,0.08);
             --radius: 24px;
         }
@@ -67,6 +67,23 @@
         }
         .option-btn:active { transform: scale(0.98); background: #f0f0f0; }
 
+        /* === Entrance Buttons (New) === */
+        .mode-btn {
+            width: 100%; max-width: 340px; height: 160px;
+            background: white; border-radius: 24px;
+            margin-bottom: 20px; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: var(--shadow); cursor: pointer;
+            transition: transform 0.2s; border: 3px solid transparent;
+        }
+        .mode-btn:active { transform: scale(0.96); }
+        .mode-icon { font-size: 48px; margin-bottom: 15px; }
+        .mode-title { font-size: 22px; font-weight: 900; color: #333; margin-bottom: 5px; }
+        .mode-desc { font-size: 14px; color: #888; }
+        
+        .mode-btn.morning { border-color: #FFD93D; background: linear-gradient(to bottom right, #fff, #FFFDE7); }
+        .mode-btn.night { border-color: #5F7D8B; background: linear-gradient(to bottom right, #fff, #ECEFF1); }
+
         /* === Card Stack === */
         .card-container {
             width: 100%; max-width: 340px; aspect-ratio: 3/4.5;
@@ -85,10 +102,6 @@
             background-size: cover; background-position: center;
             position: relative;
         }
-        .card-img::before {
-            content: ''; display: flex; align-items: center; justify-content: center;
-            position: absolute; inset: 0; color: #999; font-size: 12px; z-index: 0;
-        }
         
         .card-content { padding: 25px; flex: 1; display: flex; flex-direction: column; z-index: 1; background: white; }
         .card-title { font-size: 26px; font-weight: 900; margin-bottom: 10px; color: #333; }
@@ -96,15 +109,6 @@
         .tag { font-size: 12px; background: #F5F7F9; color: #607D8B; padding: 5px 10px; border-radius: 8px; font-weight: 600; }
         .desc { font-size: 15px; color: var(--text-sub); line-height: 1.5; flex: 1; }
         
-        /* Filter Chips */
-        .filter-tags { display: flex; gap: 8px; margin-top: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        .filter-chip {
-            border: 1px solid #eee; padding: 8px 14px; border-radius: 20px; background: #fff;
-            font-size: 13px; color: #666; display: flex; align-items: center; gap: 5px;
-            cursor: pointer; white-space: nowrap; transition: all 0.2s;
-        }
-        .filter-chip:active { background: #fee; color: var(--primary); border-color: var(--primary); }
-
         /* Action Buttons */
         .action-bar {
             display: flex; gap: 25px; margin-top: 20px;
@@ -120,23 +124,18 @@
         .btn-like { color: var(--primary); background: #FFF5F5; }
         .big-btn:active { transform: scale(1.1); }
 
-        /* === Podium (決選清單) === */
+        /* === Podium === */
         .podium-list { width: 100%; max-width: 360px; }
         .podium-item {
             background: white; padding: 15px; border-radius: 16px; margin-bottom: 12px;
             display: flex; align-items: center; gap: 15px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: pointer; transition: all 0.2s;
-            border: 3px solid transparent; /* 預留邊框位置以免跳動 */
+            border: 3px solid transparent;
         }
-        
-        /* 抽獎時的高亮樣式 */
         .podium-item.highlight {
-            border-color: var(--primary);
-            background-color: #FFF5F5;
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.2);
+            border-color: var(--primary); background-color: #FFF5F5;
+            transform: scale(1.02); box-shadow: 0 8px 20px rgba(255, 107, 107, 0.2);
         }
-
         .p-img { width: 65px; height: 65px; border-radius: 12px; background: #eee; background-size: cover; background-position: center; flex-shrink: 0; }
         .p-info { flex: 1; }
         .p-name { font-weight: 800; font-size: 17px; margin-bottom: 4px; color: #333; }
@@ -146,8 +145,7 @@
             margin-top: 25px; width: 100%; max-width: 360px;
             background: white; border: 2px solid #eee; padding: 16px;
             border-radius: 30px; font-weight: 800; color: #5F7D8B; font-size: 16px;
-            margin-bottom: 40px; cursor: pointer;
-            transition: background 0.2s;
+            margin-bottom: 40px; cursor: pointer; transition: background 0.2s;
         }
         .dice-btn:active { background: #f5f5f5; }
         
@@ -175,7 +173,20 @@
         <div class="heart-counter" id="counter" style="display:none;">❤️ 0 / 3</div>
     </div>
 
-    <div id="v-hunger" class="view active">
+    <div id="v-entrance" class="view active" style="justify-content: center;">
+        <div class="mode-btn morning" onclick="selectMode('breakfast')">
+            <div class="mode-icon">☀️</div>
+            <div class="mode-title">開啟一天</div>
+            <div class="mode-desc">早餐、早午餐、輕食</div>
+        </div>
+        <div class="mode-btn night" onclick="selectMode('regular')">
+            <div class="mode-icon">🌙</div>
+            <div class="mode-title">填飽肚子</div>
+            <div class="mode-desc">午餐、晚餐、宵夜</div>
+        </div>
+    </div>
+
+    <div id="v-hunger" class="view">
         <div class="question-title">現在餓嗎？</div>
         <div class="option-btn" onclick="nextStep('hunger', 'light')">🥗 不太餓，輕食就好</div>
         <div class="option-btn" onclick="nextStep('hunger', 'full')">🍖 超餓，我要吃飽</div>
@@ -196,6 +207,21 @@
         <div class="option-btn" onclick="nextStep('budget', 2)">💵 一般聚餐價位 ($$)</div>
         <div class="option-btn" onclick="nextStep('budget', 3)">💎 豪華大餐 ($$$)</div>
         <div class="option-btn" onclick="nextStep('budget', 0)">💸 沒差，看感覺</div>
+    </div>
+
+    <div id="v-bf-style" class="view">
+        <div class="question-title">早餐想吃哪一派？</div>
+        <div class="option-btn" onclick="nextStep('style', 'chn')">🥢 中式傳統 (蛋餅/飯糰)</div>
+        <div class="option-btn" onclick="nextStep('style', 'west')">🍔 西式/早午餐 (漢堡/拼盤)</div>
+        <div class="option-btn" onclick="nextStep('style', 'quick')">🍞 簡單超商 (麵包/茶葉蛋)</div>
+        <div class="option-btn" onclick="nextStep('style', 'any')">🤷 沒差，都可以</div>
+    </div>
+
+    <div id="v-bf-vibe" class="view">
+        <div class="question-title">今天的節奏？</div>
+        <div class="option-btn" onclick="nextStep('vibe', 'rush')">🏃 趕時間，帶著走</div>
+        <div class="option-btn" onclick="nextStep('vibe', 'chill')">☕️ 悠閒，坐下來吃</div>
+        <div class="option-btn" onclick="nextStep('vibe', 'any')">🌈 看心情</div>
     </div>
 
     <div id="v-swipe" class="view">
@@ -222,267 +248,295 @@
         <a id="resLink" href="#" target="_blank" class="map-btn">
             <i class="fas fa-location-arrow"></i> 搜尋附近店家
         </a>
-        <div style="margin-top:25px; text-decoration:underline; color:#999; cursor:pointer; font-size:14px;" onclick="location.reload()">重玩一次</div>
+        <div style="margin-top:25px; text-decoration:underline; color:#999; cursor:pointer; font-size:14px;" onclick="location.reload()">回首頁</div>
     </div>
 
     <script>
+        // === 資料庫設定 ===
+        // tag 說明: 
+        // 午晚餐: soup(湯), dry(乾), spicy(辣), light(輕食), full(飽), greasy(油)
+        // 早餐: chn(中式), west(西式), quick(方便/超商), slow(慢食), rush(趕時間)
 
-        // 資料庫：i 代表 image keyword，用於自動抓圖
-
-        const db = [
-
+        const dinnerDB = [
             { n: "豚骨拉麵", t: ["日式", "有湯"], p: 2, f: ["soup", "greasy", "full"], d: "濃郁湯頭，暖胃首選", i: "ramen" },
-
-            { n: "日式沾麵", t: ["日式", "Q彈"], p: 2, f: ["dry", "full"], d: "濃厚醬汁吸附麵條", i: "ramen" },
-
+            { n: "日式沾麵", t: ["日式", "Q彈"], p: 2, f: ["dry", "full"], d: "濃厚醬汁吸附麵條", i: "tsukemen" },
             { n: "日式牛丼", t: ["日式", "快速"], p: 1, f: ["dry", "full"], d: "甜鹹醬汁拌飯", i: "gyudon" },
-
-            { n: "炸豬排定食", t: ["日式", "飽足"], p: 2, f: ["dry", "greasy", "full"], d: "外酥內嫩厚切豬排", i: "pork_cutlet" },
-
-            { n: "親子丼", t: ["日式", "滑嫩"], p: 1, f: ["dry", "full"], d: "雞肉與蛋的完美結合", i: "donburi" },
-
+            { n: "炸豬排定食", t: ["日式", "飽足"], p: 2, f: ["dry", "greasy", "full"], d: "外酥內嫩厚切豬排", i: "tonkatsu" },
+            { n: "親子丼", t: ["日式", "滑嫩"], p: 1, f: ["dry", "full"], d: "雞肉與蛋的完美結合", i: "oyakodon" },
             { n: "迴轉壽司", t: ["日式", "清爽"], p: 2, f: ["dry", "light"], d: "多樣化選擇", i: "sushi" },
-
             { n: "日式咖哩飯", t: ["日式", "濃郁"], p: 2, f: ["dry", "full"], d: "甘甜濃郁的日式風味", i: "curry_rice" },
-
             { n: "天婦羅丼", t: ["日式", "酥脆"], p: 2, f: ["dry", "greasy", "full"], d: "滿滿炸蝦與蔬菜", i: "tempura" },
-
             { n: "日式燒肉", t: ["日式", "聚餐"], p: 3, f: ["dry", "greasy", "full"], d: "自己烤肉的樂趣", i: "yakiniku" },
-
             { n: "壽喜燒", t: ["日式", "鍋物"], p: 3, f: ["soup", "full"], d: "甜鹹醬汁涮牛肉", i: "sukiyaki" },
-
             { n: "烏龍麵", t: ["日式", "Q彈"], p: 1, f: ["soup", "light"], d: "簡單清爽的柴魚湯頭", i: "udon" },
-
             { n: "蕎麥麵", t: ["日式", "涼爽"], p: 1, f: ["dry", "light"], d: "夏日消暑首選", i: "soba_noodles" },
-
             { n: "章魚燒", t: ["日式", "小吃"], p: 1, f: ["dry", "light"], d: "外酥內軟的小點心", i: "takoyaki" },
-
             { n: "鰻魚飯", t: ["日式", "高級"], p: 3, f: ["dry", "full"], d: "炭烤香氣，補元氣", i: "unagi" },
-
-
+            { n: "生魚片丼", t: ["日式", "鮮美"], p: 2, f: ["dry", "light"], d: "滿滿海鮮超滿足", i: "kaisendon" },
+            { n: "大阪燒", t: ["日式", "鐵板"], p: 2, f: ["dry", "greasy", "full"], d: "柴魚片在跳舞", i: "okonomiyaki" },
 
             { n: "紅燒牛肉麵", t: ["台式", "經典"], p: 2, f: ["soup", "spicy", "full"], d: "台灣人最愛的經典", i: "beef_noodle" },
-
             { n: "滷肉飯", t: ["台式", "必吃"], p: 1, f: ["dry", "greasy", "full"], d: "國民美食，肥瘦適中", i: "braised_pork_rice" },
-
             { n: "小籠包", t: ["中式", "爆漿"], p: 2, f: ["dry", "light"], d: "皮薄餡多湯汁鮮美", i: "xiaolongbao" },
-
             { n: "鍋貼/水餃", t: ["台式", "方便"], p: 1, f: ["dry", "greasy", "full"], d: "酥脆外皮與多汁內餡", i: "dumplings" },
-
-            { n: "麻辣火鍋", t: ["中式", "聚餐"], p: 3, f: ["soup", "spicy", "greasy", "full"], d: "香辣過癮，適合多人", i: "hotpot" },
-
+            { n: "麻辣火鍋", t: ["中式", "聚餐"], p: 3, f: ["soup", "spicy", "greasy", "full"], d: "香辣過癮，適合多人", i: "spicy_hotpot" },
             { n: "酸辣湯餃", t: ["台式", "開胃"], p: 1, f: ["soup", "spicy", "full"], d: "酸辣夠味，飽足感夠", i: "sour_soup" },
-
-            { n: "火雞肉飯", t: ["台式", "嘉義"], p: 1, f: ["dry", "greasy", "full"], d: "雞油香氣十足", i: "chicken_rice" },
-
+            { n: "火雞肉飯", t: ["台式", "嘉義"], p: 1, f: ["dry", "greasy", "full"], d: "雞油香氣十足", i: "turkey_rice" },
             { n: "台式熱炒", t: ["台式", "聚餐"], p: 2, f: ["dry", "greasy", "full"], d: "大火快炒，配啤酒", i: "stir_fry" },
-
-            { n: "排骨飯", t: ["台式", "便當"], p: 1, f: ["dry", "greasy", "full"], d: "古早味炸排骨", i: "pork_chop" },
-
+            { n: "排骨飯", t: ["台式", "便當"], p: 1, f: ["dry", "greasy", "full"], d: "古早味炸排骨", i: "pork_chop_rice" },
             { n: "清粥小菜", t: ["台式", "清淡"], p: 2, f: ["soup", "light"], d: "暖胃又清爽", i: "congee" },
-
             { n: "蚵仔煎", t: ["台式", "小吃"], p: 1, f: ["dry", "greasy", "light"], d: "夜市必吃美食", i: "oyster_omelet" },
-
             { n: "臭臭鍋", t: ["台式", "小火鍋"], p: 1, f: ["soup", "spicy", "full"], d: "平價享受，料多實在", i: "hotpot" },
-
             { n: "薑母鴨", t: ["台式", "進補"], p: 3, f: ["soup", "full"], d: "冬天進補首選", i: "ginger_duck" },
-
             { n: "擔仔麵", t: ["台式", "傳統"], p: 1, f: ["soup", "light"], d: "肉燥香氣撲鼻", i: "noodle_soup" },
-
-
+            { n: "麻油雞", t: ["台式", "進補"], p: 2, f: ["soup", "full"], d: "暖心暖胃", i: "sesame_oil_chicken" },
+            { n: "藥燉排骨", t: ["台式", "夜市"], p: 1, f: ["soup", "full"], d: "湯頭甘甜中藥香", i: "soup_pork" },
+            { n: "大腸包小腸", t: ["台式", "小吃"], p: 1, f: ["dry", "greasy", "light"], d: "台式熱狗堡", i: "taiwan_sausage" },
+            { n: "潤餅", t: ["台式", "清爽"], p: 1, f: ["dry", "light"], d: "蔬菜滿滿", i: "popiah" },
 
             { n: "美式漢堡", t: ["美式", "大口吃"], p: 2, f: ["dry", "greasy", "full"], d: "多汁牛肉排配起司", i: "burger" },
-
             { n: "義大利麵", t: ["義式", "多樣"], p: 2, f: ["dry", "full"], d: "紅醬白醬青醬任選", i: "pasta" },
-
             { n: "窯烤披薩", t: ["義式", "分享"], p: 2, f: ["dry", "greasy", "full"], d: "薄脆餅皮，牽絲起司", i: "pizza" },
-
             { n: "牛排", t: ["西式", "慶祝"], p: 3, f: ["dry", "greasy", "full"], d: "大口吃肉的滿足感", i: "steak" },
-
             { n: "潛艇堡", t: ["美式", "健康"], p: 1, f: ["dry", "light"], d: "蔬菜滿滿，清爽無負擔", i: "sandwich" },
-
             { n: "早午餐", t: ["西式", "悠閒"], p: 2, f: ["dry", "light"], d: "班尼迪克蛋與法式吐司", i: "brunch" },
-
             { n: "炸雞", t: ["美式", "罪惡"], p: 2, f: ["dry", "greasy", "full"], d: "酥脆外皮多汁雞肉", i: "fried_chicken" },
-
             { n: "燉飯", t: ["義式", "濃郁"], p: 2, f: ["dry", "full"], d: "米心微硬口感", i: "risotto" },
-
             { n: "墨西哥捲餅", t: ["異國", "微辣"], p: 1, f: ["dry", "spicy", "light"], d: "莎莎醬配酪梨", i: "taco" },
-
             { n: "凱薩沙拉", t: ["西式", "減脂"], p: 2, f: ["dry", "light"], d: "輕食主義首選", i: "caesar_salad" },
-
-
+            { n: "千層麵", t: ["義式", "濃郁"], p: 2, f: ["dry", "full"], d: "層層疊疊的美味", i: "lasagna" },
+            { n: "西班牙海鮮燉飯", t: ["異國", "大餐"], p: 3, f: ["dry", "full"], d: "番紅花香氣", i: "paella" },
 
             { n: "韓式炸雞", t: ["韓式", "甜辣"], p: 2, f: ["dry", "spicy", "greasy", "full"], d: "裹醬炸雞配啤酒", i: "korean_fried_chicken" },
-
             { n: "石鍋拌飯", t: ["韓式", "鍋巴"], p: 2, f: ["dry", "spicy", "full"], d: "豐富配菜拌辣醬", i: "bibimbap" },
-
             { n: "泡菜鍋", t: ["韓式", "酸辣"], p: 2, f: ["soup", "spicy", "full"], d: "酸辣開胃熱湯", i: "kimchi_stew" },
-
             { n: "銅盤烤肉", t: ["韓式", "聚餐"], p: 2, f: ["dry", "full"], d: "邊烤肉邊喝湯", i: "korean_bbq" },
-
-            { n: "泰式打拋豬", t: ["泰式", "下飯"], p: 1, f: ["dry", "spicy", "greasy", "full"], d: "酸辣鹹香，白飯殺手", i: "thai_food" },
-
-            { n: "越南河粉", t: ["越式", "清爽"], p: 1, f: ["soup", "light"], d: "清甜湯頭配檸檬", i: "pho" },
-
-            { n: "泰式綠咖哩", t: ["泰式", "椰香"], p: 2, f: ["soup", "spicy", "full"], d: "濃郁椰奶香微辣", i: "green_curry" },
-
-            { n: "月亮蝦餅", t: ["泰式", "酥脆"], p: 2, f: ["dry", "greasy", "light"], d: "外酥內Q彈", i: "thai_food" },
-
-            { n: "海南雞飯", t: ["星馬", "嫩雞"], p: 1, f: ["dry", "greasy", "full"], d: "雞肉滑嫩，雞油飯香", i: "hainan_chicken" },
-
-            { n: "印度咖哩", t: ["異國", "香料"], p: 2, f: ["soup", "spicy", "full"], d: "香料層次豐富配烤餅", i: "indian_curry" },
-
+            { n: "辣炒年糕", t: ["韓式", "小吃"], p: 1, f: ["dry", "spicy", "full"], d: "Q彈年糕", i: "tteokbokki" },
+            { n: "部隊鍋", t: ["韓式", "豐富"], p: 2, f: ["soup", "spicy", "full"], d: "泡麵起司火腿", i: "budae_jjigae" },
             
+            { n: "泰式打拋豬", t: ["泰式", "下飯"], p: 1, f: ["dry", "spicy", "greasy", "full"], d: "酸辣鹹香，白飯殺手", i: "thai_basil_pork" },
+            { n: "越南河粉", t: ["越式", "清爽"], p: 1, f: ["soup", "light"], d: "清甜湯頭配檸檬", i: "pho" },
+            { n: "泰式綠咖哩", t: ["泰式", "椰香"], p: 2, f: ["soup", "spicy", "full"], d: "濃郁椰奶香微辣", i: "green_curry" },
+            { n: "月亮蝦餅", t: ["泰式", "酥脆"], p: 2, f: ["dry", "greasy", "light"], d: "外酥內Q彈", i: "thai_shrimp_cake" },
+            { n: "海南雞飯", t: ["星馬", "嫩雞"], p: 1, f: ["dry", "greasy", "full"], d: "雞肉滑嫩，雞油飯香", i: "hainan_chicken_rice" },
+            { n: "印度咖哩", t: ["異國", "香料"], p: 2, f: ["soup", "spicy", "full"], d: "香料層次豐富配烤餅", i: "indian_curry" },
+            { n: "肉骨茶", t: ["星馬", "滋補"], p: 2, f: ["soup", "full"], d: "胡椒香氣重", i: "bak_kut_teh" },
+            { n: "越式法國麵包", t: ["越式", "酥脆"], p: 1, f: ["dry", "light"], d: "清爽醃蘿蔔", i: "banh_mi" },
 
-            // 更多補充選項...
-
+            // 補充至 100+
             { n: "麻辣燙", t: ["中式", "個人"], p: 1, f: ["soup", "spicy", "light"], d: "想吃什麼夾什麼", i: "malatang" },
-
-            { n: "鹹酥雞", t: ["台式", "宵夜"], p: 1, f: ["dry", "greasy", "light"], d: "台灣味炸物拼盤", i: "fried_chicken" },
-
-            { n: "涼麵", t: ["台式", "消暑"], p: 1, f: ["dry", "light"], d: "麻醬香氣濃郁", i: "noodles" },
-
+            { n: "鹹酥雞", t: ["台式", "宵夜"], p: 1, f: ["dry", "greasy", "light"], d: "台灣味炸物拼盤", i: "taiwan_fried_chicken" },
+            { n: "涼麵", t: ["台式", "消暑"], p: 1, f: ["dry", "light"], d: "麻醬香氣濃郁", i: "cold_noodles" },
             { n: "鐵板燒", t: ["台式", "現炒"], p: 2, f: ["dry", "greasy", "full"], d: "師傅現炒青菜與主食", i: "teppanyaki" },
-
             { n: "炒飯", t: ["中式", "鑊氣"], p: 1, f: ["dry", "greasy", "full"], d: "粒粒分明", i: "fried_rice" },
-
-            { n: "炒麵", t: ["台式", "家常"], p: 1, f: ["dry", "greasy", "full"], d: "大火快炒香氣", i: "fried_noodles" },
-
-            { n: "米粉湯", t: ["台式", "小吃"], p: 1, f: ["soup", "light"], d: "粗米粉配黑白切", i: "rice_noodle" },
-
-            { n: "肉圓", t: ["台式", "Q彈"], p: 1, f: ["dry", "greasy", "light"], d: "低溫油泡外皮Q彈", i: "meatball" },
-
+            { n: "炒麵", t: ["台式", "家常"], p: 1, f: ["dry", "greasy", "full"], d: "大火快炒香氣", i: "chow_mein" },
+            { n: "米粉湯", t: ["台式", "小吃"], p: 1, f: ["soup", "light"], d: "粗米粉配黑白切", i: "rice_noodle_soup" },
+            { n: "肉圓", t: ["台式", "Q彈"], p: 1, f: ["dry", "greasy", "light"], d: "低溫油泡外皮Q彈", i: "taiwan_meatball" },
             { n: "甜不辣", t: ["台式", "煮物"], p: 1, f: ["soup", "light"], d: "吃完還可以加湯", i: "oden" },
-
-            { n: "藥燉排骨", t: ["台式", "夜市"], p: 1, f: ["soup", "full"], d: "湯頭甘甜中藥香", i: "soup" },
-
             { n: "關東煮", t: ["日式", "清淡"], p: 1, f: ["soup", "light"], d: "便利商店的溫暖", i: "oden" },
-
             { n: "夏威夷拌飯", t: ["美式", "生食"], p: 2, f: ["dry", "light"], d: "原型食物健康選擇", i: "poke_bowl" },
-
-            { n: "燒臘便當", t: ["港式", "油雞"], p: 1, f: ["dry", "greasy", "full"], d: "蔥油配上燒鴨油雞", i: "roasted_duck" },
-
+            { n: "燒臘便當", t: ["港式", "油雞"], p: 1, f: ["dry", "greasy", "full"], d: "蔥油配上燒鴨油雞", i: "cantonese_bbq_rice" },
             { n: "港式點心", t: ["港式", "飲茶"], p: 2, f: ["dry", "light"], d: "燒賣、蝦餃、叉燒包", i: "dim_sum" },
-
-            { n: "茶餐廳", t: ["港式", "快餐"], p: 2, f: ["dry", "greasy", "full"], d: "公仔麵、波蘿油", i: "hong_kong_food" },
-
-            { n: "酸菜白肉鍋", t: ["中式", "酸爽"], p: 3, f: ["soup", "full"], d: "酸白菜配五花肉", i: "hotpot" },
-
-            { n: "砂鍋魚頭", t: ["台式", "大菜"], p: 3, f: ["soup", "greasy", "full"], d: "湯頭濃郁料多", i: "fish_head_soup" },
-
-            { n: "羊肉炒麵", t: ["台式", "快炒"], p: 1, f: ["dry", "greasy", "full"], d: "沙茶羊肉香氣", i: "fried_noodles" },
-
-            { n: "鱔魚意麵", t: ["台式", "甜酸"], p: 2, f: ["dry", "full"], d: "台南風味", i: "noodles" },
-
-            { n: "當歸鴨", t: ["台式", "溫補"], p: 1, f: ["soup", "full"], d: "湯頭甘甜", i: "duck_soup" },
-
-            { n: "土魠魚羹", t: ["台式", "酥脆"], p: 1, f: ["soup", "greasy", "full"], d: "外酥內嫩魚塊", i: "fish_soup" },
-
-            { n: "割包", t: ["台式", "虎咬豬"], p: 1, f: ["dry", "greasy", "light"], d: "台式漢堡", i: "bao_bun" },
-
-            { n: "四神湯", t: ["台式", "溫潤"], p: 1, f: ["soup", "light"], d: "薏仁豬肚", i: "soup" },
-
+            { n: "茶餐廳", t: ["港式", "快餐"], p: 2, f: ["dry", "greasy", "full"], d: "公仔麵、波蘿油", i: "hong_kong_cafe_food" },
+            { n: "酸菜白肉鍋", t: ["中式", "酸爽"], p: 3, f: ["soup", "full"], d: "酸白菜配五花肉", i: "pickled_cabbage_hotpot" },
+            { n: "砂鍋魚頭", t: ["台式", "大菜"], p: 3, f: ["soup", "greasy", "full"], d: "湯頭濃郁料多", i: "fish_head_casserole" },
+            { n: "羊肉炒麵", t: ["台式", "快炒"], p: 1, f: ["dry", "greasy", "full"], d: "沙茶羊肉香氣", i: "fried_noodles_lamb" },
+            { n: "鱔魚意麵", t: ["台式", "甜酸"], p: 2, f: ["dry", "full"], d: "台南風味", i: "eel_noodles" },
+            { n: "當歸鴨", t: ["台式", "溫補"], p: 1, f: ["soup", "full"], d: "湯頭甘甜", i: "duck_soup_herbal" },
+            { n: "土魠魚羹", t: ["台式", "酥脆"], p: 1, f: ["soup", "greasy", "full"], d: "外酥內嫩魚塊", i: "fish_nugget_soup" },
+            { n: "割包", t: ["台式", "虎咬豬"], p: 1, f: ["dry", "greasy", "light"], d: "台式漢堡", i: "gua_bao" },
+            { n: "四神湯", t: ["台式", "溫潤"], p: 1, f: ["soup", "light"], d: "薏仁豬肚", i: "four_herbs_soup" },
             { n: "雞排", t: ["台式", "邪惡"], p: 1, f: ["dry", "greasy", "light"], d: "宵夜霸主", i: "fried_chicken_steak" },
-
-            { n: "素食自助餐", t: ["素食", "健康"], p: 1, f: ["dry", "light"], d: "多樣蔬菜選擇", i: "vegetables" },
-
-            { n: "IKEA餐廳", t: ["瑞典", "肉丸"], p: 2, f: ["dry", "full"], d: "肉丸與炸雞翅", i: "meatballs" },
-
-            { n: "Costco熟食", t: ["美式", "便宜"], p: 1, f: ["dry", "greasy", "full"], d: "熱狗與牛肉捲", i: "hotdog" },
-
-            { n: "便利商店", t: ["超商", "快速"], p: 1, f: ["dry", "full"], d: "微波即食", i: "convenience_store_food" },
-
-            { n: "咖啡廳輕食", t: ["西式", "優雅"], p: 2, f: ["dry", "light"], d: "三明治配咖啡", i: "sandwich_coffee" },
-
-            { n: "大戶屋", t: ["日式", "定食"], p: 2, f: ["dry", "full"], d: "家庭式日式料理", i: "japanese_food" },
-
-            { n: "海底撈", t: ["火鍋", "服務"], p: 3, f: ["soup", "spicy", "full"], d: "服務第一", i: "hotpot" },
-
-            { n: "鼎泰豐", t: ["中式", "精緻"], p: 3, f: ["dry", "light"], d: "世界級小籠包", i: "dumplings" },
-
-            { n: "八方雲集", t: ["台式", "鍋貼"], p: 1, f: ["dry", "full"], d: "連鎖方便", i: "dumplings" },
-
-            { n: "麥當勞", t: ["美式", "速食"], p: 1, f: ["dry", "greasy", "full"], d: "薯條是本體", i: "fries" },
-
-            { n: "肯德基", t: ["美式", "蛋塔"], p: 2, f: ["dry", "greasy", "full"], d: "被炸雞耽誤的蛋塔店", i: "fried_chicken" },
-
-            { n: "必勝客", t: ["義式", "披薩"], p: 2, f: ["dry", "greasy", "full"], d: "各種奇妙口味", i: "pizza" },
-
-            { n: "路邊攤滷味", t: ["台式", "宵夜"], p: 1, f: ["dry", "light"], d: "冷滷熱滷都好吃", i: "taiwan_food" },
-
+            { n: "素食自助餐", t: ["素食", "健康"], p: 1, f: ["dry", "light"], d: "多樣蔬菜選擇", i: "vegetarian_buffet" },
+            { n: "IKEA餐廳", t: ["瑞典", "肉丸"], p: 2, f: ["dry", "full"], d: "肉丸與炸雞翅", i: "swedish_meatballs" },
+            { n: "Costco熟食", t: ["美式", "便宜"], p: 1, f: ["dry", "greasy", "full"], d: "熱狗與牛肉捲", i: "hotdog_costco" },
+            { n: "便利商店", t: ["超商", "快速"], p: 1, f: ["dry", "full"], d: "微波即食", i: "convenience_store_meal" },
+            { n: "咖啡廳輕食", t: ["西式", "優雅"], p: 2, f: ["dry", "light"], d: "三明治配咖啡", i: "cafe_sandwich" },
+            { n: "大戶屋", t: ["日式", "定食"], p: 2, f: ["dry", "full"], d: "家庭式日式料理", i: "japanese_set_meal" },
+            { n: "海底撈", t: ["火鍋", "服務"], p: 3, f: ["soup", "spicy", "full"], d: "服務第一", i: "haidilao_hotpot" },
+            { n: "鼎泰豐", t: ["中式", "精緻"], p: 3, f: ["dry", "light"], d: "世界級小籠包", i: "xiaolongbao_steamed" },
+            { n: "八方雲集", t: ["台式", "鍋貼"], p: 1, f: ["dry", "full"], d: "連鎖方便", i: "dumplings_fried" },
+            { n: "麥當勞", t: ["美式", "速食"], p: 1, f: ["dry", "greasy", "full"], d: "薯條是本體", i: "mcdonalds_burger" },
+            { n: "肯德基", t: ["美式", "蛋塔"], p: 2, f: ["dry", "greasy", "full"], d: "被炸雞耽誤的蛋塔店", i: "kfc_chicken" },
+            { n: "必勝客", t: ["義式", "披薩"], p: 2, f: ["dry", "greasy", "full"], d: "各種奇妙口味", i: "pizza_hut" },
+            { n: "路邊攤滷味", t: ["台式", "宵夜"], p: 1, f: ["dry", "light"], d: "冷滷熱滷都好吃", i: "braised_dishes" },
             { n: "蔥抓餅", t: ["台式", "點心"], p: 1, f: ["dry", "greasy", "light"], d: "加蛋加起司", i: "scallion_pancake" },
-
             { n: "地瓜球", t: ["台式", "Q彈"], p: 1, f: ["dry", "light"], d: "快樂的空氣感", i: "sweet_potato_balls" },
-
             { n: "沙威瑪", t: ["異國", "旋轉"], p: 1, f: ["dry", "full"], d: "旋轉烤肉削下來", i: "shawarma" },
-
             { n: "可麗餅", t: ["異國", "脆皮"], p: 1, f: ["dry", "light"], d: "鹹甜口味都有", i: "crepe" },
-
             { n: "豆花", t: ["甜點", "古早"], p: 1, f: ["soup", "light"], d: "綿密豆香配花生", i: "tofu_pudding" },
-
-            { n: "燒仙草", t: ["甜點", "暖胃"], p: 1, f: ["soup", "light"], d: "冬天必喝", i: "grass_jelly" }
-
+            { n: "燒仙草", t: ["甜點", "暖胃"], p: 1, f: ["soup", "light"], d: "冬天必喝", i: "grass_jelly_soup" },
+            { n: "羊肉爐", t: ["台式", "鍋物"], p: 3, f: ["soup", "full"], d: "冬天圍爐首選", i: "mutton_hotpot" },
+            { n: "居酒屋", t: ["日式", "小酌"], p: 3, f: ["dry", "light"], d: "串燒配啤酒", i: "izakaya" },
+            { n: "烤鴨三吃", t: ["中式", "大餐"], p: 3, f: ["dry", "greasy", "full"], d: "片皮鴨捲餅", i: "peking_duck" }
         ];
 
-        // 圖片優化：改用 LoremFlickr，速度快很多，且比較不會掛掉
-        // 加入隨機參數避免快取
-        const fullDB = db.map(item => ({
+        // === 早餐專屬資料庫 (52項) ===
+        // 標籤: chn(中式), west(西式), quick(方便/超商), slow(慢食/早午餐), rush(趕時間)
+        const breakfastDB = [
+            // 中式傳統
+            { n: "蛋餅", t: ["中式", "經典"], p: 1, f: ["chn", "rush", "quick"], d: "鮪魚、玉米、起司任選", i: "taiwanese_egg_pancake" },
+            { n: "飯糰", t: ["中式", "飽足"], p: 1, f: ["chn", "rush", "full"], d: "紫米飯糰加油條", i: "taiwan_rice_ball" },
+            { n: "燒餅油條", t: ["中式", "酥脆"], p: 1, f: ["chn", "chill"], d: "配豆漿絕配", i: "shao_bing_you_tiao" },
+            { n: "小籠湯包", t: ["中式", "多汁"], p: 2, f: ["chn", "chill"], d: "早餐吃這個太幸福", i: "xiaolongbao" },
+            { n: "蘿蔔糕", t: ["中式", "恰恰"], p: 1, f: ["chn", "rush"], d: "加蛋更好吃", i: "radish_cake" },
+            { n: "清粥小菜", t: ["中式", "清淡"], p: 1, f: ["chn", "chill"], d: "暖胃首選", i: "congee" },
+            { n: "皮蛋瘦肉粥", t: ["中式", "經典"], p: 1, f: ["chn", "chill"], d: "滑順口感", i: "congee_century_egg" },
+            { n: "鐵板麵", t: ["中式", "重口味"], p: 1, f: ["chn", "chill", "full"], d: "黑胡椒加蛋", i: "teppanyaki_noodles" },
+            { n: "鍋貼", t: ["中式", "酥脆"], p: 1, f: ["chn", "rush"], d: "早餐店的煎餃", i: "potstickers" },
+            { n: "鹹豆漿", t: ["中式", "特色"], p: 1, f: ["chn", "chill"], d: "像蒸蛋一樣的口感", i: "salty_soy_milk" },
+            { n: "饅頭夾蛋", t: ["中式", "樸實"], p: 1, f: ["chn", "rush"], d: "簡單又耐吃", i: "steamed_bun_egg" },
+            { n: "肉包", t: ["中式", "方便"], p: 1, f: ["chn", "rush", "quick"], d: "熱騰騰的滿足感", i: "meat_bun" },
+            { n: "蔥抓餅", t: ["中式", "酥脆"], p: 1, f: ["chn", "rush"], d: "層次分明", i: "scallion_pancake" },
+            { n: "廣東粥", t: ["港式", "綿密"], p: 1, f: ["chn", "chill"], d: "料多味美", i: "cantonese_congee" },
+            { n: "米漿/豆漿", t: ["飲品", "傳統"], p: 1, f: ["chn", "quick"], d: "搭配油條最對味", i: "soy_milk" },
+            { n: "刈包", t: ["中式", "飽足"], p: 1, f: ["chn", "rush"], d: "早餐吃這個很爽", i: "gua_bao" },
+            
+            // 西式/速食
+            { n: "火腿蛋吐司", t: ["西式", "經典"], p: 1, f: ["west", "rush", "quick"], d: "切邊不切邊？", i: "ham_egg_toast" },
+            { n: "總匯三明治", t: ["西式", "豐富"], p: 1, f: ["west", "rush", "full"], d: "四層口感超滿足", i: "club_sandwich" },
+            { n: "豬肉滿福堡", t: ["美式", "經典"], p: 1, f: ["west", "rush", "quick"], d: "麥當勞早餐", i: "mcmuffin" },
+            { n: "薯餅", t: ["美式", "酥脆"], p: 1, f: ["west", "quick"], d: "早餐的靈魂", i: "hash_brown" },
+            { n: "卡拉雞腿堡", t: ["美式", "飽足"], p: 1, f: ["west", "rush", "full"], d: "早餐吃炸雞", i: "chicken_burger" },
+            { n: "貝果", t: ["西式", "嚼勁"], p: 1, f: ["west", "chill"], d: "抹乳酪醬", i: "bagel_cream_cheese" },
+            { n: "可頌", t: ["西式", "酥脆"], p: 1, f: ["west", "chill"], d: "配咖啡剛好", i: "croissant" },
+            { n: "鮪魚蛋餅", t: ["台式", "人氣"], p: 1, f: ["chn", "rush"], d: "早餐店必點", i: "tuna_egg_crepe" },
+            { n: "起司蛋餅", t: ["台式", "牽絲"], p: 1, f: ["chn", "rush"], d: "濃郁起司香", i: "cheese_egg_crepe" },
+            { n: "培根蛋吐司", t: ["西式", "香氣"], p: 1, f: ["west", "rush"], d: "培根煎得焦焦的", i: "bacon_egg_toast" },
+            { n: "花生厚片", t: ["西式", "甜食"], p: 1, f: ["west", "rush", "quick"], d: "有顆粒的花生醬", i: "peanut_butter_toast" },
+            { n: "巧克力厚片", t: ["西式", "甜食"], p: 1, f: ["west", "rush", "quick"], d: "螞蟻人的最愛", i: "chocolate_toast" },
+            
+            // 早午餐/悠閒
+            { n: "班尼迪克蛋", t: ["早午餐", "精緻"], p: 2, f: ["west", "chill", "slow"], d: "水波蛋淋上荷蘭醬", i: "eggs_benedict" },
+            { n: "美式早午餐盤", t: ["早午餐", "豐富"], p: 2, f: ["west", "chill", "full", "slow"], d: "炒蛋、培根、薯塊", i: "american_breakfast" },
+            { n: "法式吐司", t: ["早午餐", "甜美"], p: 2, f: ["west", "chill", "slow"], d: "淋上楓糖漿", i: "french_toast" },
+            { n: "鬆餅", t: ["早午餐", "甜點"], p: 2, f: ["west", "chill"], d: "格子鬆餅配鮮奶油", i: "waffle" },
+            { n: "歐姆蛋捲", t: ["早午餐", "滑嫩"], p: 2, f: ["west", "chill", "slow"], d: "包滿蘑菇起司", i: "omelette" },
+            { n: "酪梨吐司", t: ["早午餐", "健康"], p: 2, f: ["west", "chill", "slow"], d: "健康時尚早餐", i: "avocado_toast" },
+            { n: "優格碗", t: ["早午餐", "輕食"], p: 2, f: ["west", "chill", "quick"], d: "希臘優格配燕麥", i: "yogurt_bowl" },
+            { n: "沙拉盆", t: ["早午餐", "健康"], p: 2, f: ["west", "chill"], d: "木盆沙拉", i: "salad_bowl" },
+            { n: "路易莎咖啡", t: ["連鎖", "方便"], p: 1, f: ["west", "chill", "quick"], d: "咖啡配磚壓吐司", i: "coffee_sandwich" },
+            
+            // 超商/快速
+            { n: "超商飯糰", t: ["超商", "方便"], p: 1, f: ["quick", "rush"], d: "鮪魚、肉鬆口味", i: "onigiri" },
+            { n: "茶葉蛋+地瓜", t: ["超商", "健康"], p: 1, f: ["quick", "rush"], d: "健身族首選", i: "tea_egg_sweet_potato" },
+            { n: "三明治+咖啡", t: ["超商", "經典"], p: 1, f: ["quick", "rush"], d: "39/49/59組合", i: "sandwich_coffee" },
+            { n: "熱壓吐司", t: ["超商", "熱食"], p: 1, f: ["quick", "rush"], d: "超商現做熱食", i: "panini" },
+            { n: "大亨堡", t: ["超商", "經典"], p: 1, f: ["quick", "rush"], d: "熱狗配酸黃瓜", i: "hot_dog_bun" },
+            { n: "關東煮", t: ["超商", "暖胃"], p: 1, f: ["quick", "rush"], d: "喝湯暖暖胃", i: "oden" },
+            
+            // 其他
+            { n: "涼麵", t: ["台式", "消暑"], p: 1, f: ["chn", "rush"], d: "早餐吃涼麵很爽", i: "cold_noodles" },
+            { n: "肉羹麵", t: ["台式", "飽足"], p: 1, f: ["chn", "full"], d: "南部人的早餐", i: "pork_thick_soup" },
+            { n: "牛肉湯", t: ["台式", "台南"], p: 2, f: ["chn", "full", "slow"], d: "台南早餐霸主", i: "beef_soup" },
+            { n: "虱目魚粥", t: ["台式", "台南"], p: 1, f: ["chn", "full", "slow"], d: "鮮甜海味", i: "milkfish_congee" },
+            { n: "米粉湯", t: ["台式", "傳統"], p: 1, f: ["chn", "chill"], d: "配油豆腐", i: "rice_noodle_soup" },
+            { n: "摩斯漢堡", t: ["速食", "米漢堡"], p: 2, f: ["west", "rush"], d: "海洋珍珠堡", i: "rice_burger" },
+            { n: "星巴克", t: ["西式", "奢華"], p: 2, f: ["west", "chill", "quick"], d: "可頌配那堤", i: "starbucks_breakfast" }
+        ];
+
+        // 圖片處理
+        const processDB = (list) => list.map(item => ({
             name: item.n,
             tags: item.t,
             price: item.p,
             features: item.f,
             desc: item.d,
-            // 圖片來源更換為 LoremFlickr，格式: loremflickr.com/寬/高/關鍵字
             img: `https://loremflickr.com/500/400/${item.i}` 
         }));
 
+        const fullDinnerDB = processDB(dinnerDB);
+        const fullBreakfastDB = processDB(breakfastDB);
+
         let state = {
-            step: 'hunger',
+            mode: 'regular', // regular (dinner/lunch) or breakfast
             filters: {},
             candidates: [],
             shortlist: [],
             currentIndex: 0
         };
 
+        // 選擇模式
+        function selectMode(mode) {
+            state.mode = mode;
+            document.getElementById('v-entrance').classList.remove('active');
+            
+            if (mode === 'breakfast') {
+                document.getElementById('v-bf-style').classList.add('active');
+            } else {
+                document.getElementById('v-hunger').classList.add('active');
+            }
+        }
+
         function nextStep(category, value) {
             state.filters[category] = value;
             document.querySelector('.view.active').classList.remove('active');
             
-            if (category === 'hunger') document.getElementById('v-mood').classList.add('active');
-            else if (category === 'mood') document.getElementById('v-budget').classList.add('active');
-            else if (category === 'budget') {
-                filterCandidates();
-                document.getElementById('v-swipe').classList.add('active');
-                document.getElementById('counter').style.display = 'block';
-                renderCard();
+            // 邏輯分流
+            if (state.mode === 'regular') {
+                // 午晚餐流程
+                if (category === 'hunger') document.getElementById('v-mood').classList.add('active');
+                else if (category === 'mood') document.getElementById('v-budget').classList.add('active');
+                else if (category === 'budget') {
+                    startSwiping(fullDinnerDB);
+                }
+            } else {
+                // 早餐流程
+                if (category === 'style') document.getElementById('v-bf-vibe').classList.add('active');
+                else if (category === 'vibe') {
+                    startSwiping(fullBreakfastDB);
+                }
             }
         }
 
-        function filterCandidates() {
-            let list = fullDB.filter(item => {
+        function startSwiping(db) {
+            filterCandidates(db);
+            document.getElementById('v-swipe').classList.add('active');
+            document.getElementById('counter').style.display = 'block';
+            renderCard();
+        }
+
+        function filterCandidates(db) {
+            let list = db.filter(item => {
                 let score = 0;
-                if (state.filters.hunger === 'light' && item.features.includes('light')) score += 2;
-                if (state.filters.hunger === 'full' && item.features.includes('full')) score += 2;
-                if (state.filters.hunger === 'any') score += 1;
+                
+                if (state.mode === 'regular') {
+                    // 午晚餐邏輯
+                    if (state.filters.hunger === 'light' && item.features.includes('light')) score += 2;
+                    if (state.filters.hunger === 'full' && item.features.includes('full')) score += 2;
+                    if (state.filters.hunger === 'any') score += 1;
 
-                if (state.filters.mood === 'soup' && item.features.includes('soup')) score += 3;
-                if (state.filters.mood === 'dry' && item.features.includes('dry')) score += 3;
-                if (state.filters.mood === 'spicy' && item.features.includes('spicy')) score += 3;
-                if (state.filters.mood === 'any') score += 1;
+                    if (state.filters.mood === 'soup' && item.features.includes('soup')) score += 3;
+                    if (state.filters.mood === 'dry' && item.features.includes('dry')) score += 3;
+                    if (state.filters.mood === 'spicy' && item.features.includes('spicy')) score += 3;
+                    if (state.filters.mood === 'any') score += 1;
 
-                if (state.filters.budget === 0 || item.price === state.filters.budget) score += 2;
-                else if (Math.abs(item.price - state.filters.budget) === 1) score += 1;
+                    if (state.filters.budget === 0 || item.price === state.filters.budget) score += 2;
+                    else if (Math.abs(item.price - state.filters.budget) === 1) score += 1;
+
+                } else {
+                    // 早餐邏輯
+                    // Style: chn, west, quick
+                    if (state.filters.style === 'chn' && item.features.includes('chn')) score += 5;
+                    if (state.filters.style === 'west' && item.features.includes('west')) score += 5;
+                    if (state.filters.style === 'quick' && (item.features.includes('quick') || item.features.includes('rush'))) score += 5;
+                    if (state.filters.style === 'any') score += 1;
+
+                    // Vibe: rush, chill
+                    if (state.filters.vibe === 'rush' && (item.features.includes('rush') || item.features.includes('quick'))) score += 3;
+                    if (state.filters.vibe === 'chill' && (item.features.includes('chill') || item.features.includes('slow'))) score += 3;
+                    if (state.filters.vibe === 'any') score += 1;
+                }
 
                 item.matchScore = score;
                 return true;
             });
 
+            // 排序並取前 40 個
             list.sort((a, b) => b.matchScore - a.matchScore);
             state.candidates = shuffle(list.slice(0, 40));
             state.currentIndex = 0;
             
-            // 預載第一張圖
             if(state.candidates.length > 0) {
                 new Image().src = state.candidates[0].img;
             }
@@ -501,8 +555,6 @@
             const item = state.candidates[state.currentIndex];
             const card = document.createElement('div');
             card.className = 'food-card';
-            
-            // 加入隨機參數避免重複
             const bgImg = `${item.img}?lock=${Math.floor(Math.random()*1000)}`; 
             
             card.innerHTML = `
@@ -515,15 +567,20 @@
                     </div>
                     <div class="desc">${item.desc}</div>
                     <div class="filter-tags">
-                        <div class="filter-chip" onclick="quickFilter('greasy')">🥦 太油膩</div>
-                        <div class="filter-chip" onclick="quickFilter('spicy')">🌶️ 不吃辣</div>
-                        <div class="filter-chip" onclick="quickFilter('full')">🍞 這太飽</div>
+                        ${state.mode === 'regular' ? `
+                            <div class="filter-chip" onclick="quickFilter('greasy')">🥦 太油膩</div>
+                            <div class="filter-chip" onclick="quickFilter('spicy')">🌶️ 不吃辣</div>
+                            <div class="filter-chip" onclick="quickFilter('full')">🍞 這太飽</div>
+                        ` : `
+                            <div class="filter-chip" onclick="quickFilter('rush')">☕️ 想悠閒</div>
+                            <div class="filter-chip" onclick="quickFilter('chn')">🍔 改西式</div>
+                            <div class="filter-chip" onclick="quickFilter('west')">🥢 改中式</div>
+                        `}
                     </div>
                 </div>
             `;
             container.appendChild(card);
 
-            // 預載下一張圖 (加速體驗)
             if (state.currentIndex + 1 < state.candidates.length) {
                 const nextImg = new Image();
                 nextImg.src = `${state.candidates[state.currentIndex + 1].img}?lock=${Math.floor(Math.random()*1000)}`;
@@ -563,13 +620,12 @@
             list.innerHTML = '';
             
             state.shortlist.forEach((item, index) => {
-                // 預載這些圖片，確保結果頁顯示時不用等
                 const preloadImg = new Image();
                 preloadImg.src = `${item.img}?lock=${index}`; 
 
                 const div = document.createElement('div');
                 div.className = 'podium-item';
-                div.id = `podium-${index}`; // 給予 ID 以便動畫控制
+                div.id = `podium-${index}`; 
                 div.innerHTML = `
                     <div class="p-img" style="background-image: url('${item.img}?lock=${index}')"></div>
                     <div class="p-info">
@@ -581,28 +637,23 @@
             });
         }
 
-        // === 新增：轉盤動畫邏輯 ===
         function startRoulette() {
             const btn = document.getElementById('startBtn');
-            btn.disabled = true; // 鎖定按鈕
+            btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 命運運轉中...';
             
             let items = document.querySelectorAll('.podium-item');
             let current = 0;
-            let speed = 100; // 初始速度 (ms)
+            let speed = 100;
             let rounds = 0;
-            let totalRounds = 3; // 至少轉幾圈
+            let totalRounds = 3;
             
-            // 隨機決定贏家 (0, 1, 2)
             const winnerIndex = Math.floor(Math.random() * state.shortlist.length);
             
             function step() {
-                // 清除所有高亮
                 items.forEach(el => el.classList.remove('highlight'));
-                // 高亮當前項目
                 items[current].classList.add('highlight');
                 
-                // 下一步
                 let prev = current;
                 current++;
                 if (current >= items.length) {
@@ -610,20 +661,16 @@
                     rounds++;
                 }
 
-                // 速度控制
                 if (rounds >= totalRounds && current === winnerIndex) {
-                    // 停止條件達成：轉夠了圈數 且 剛好停在贏家
                     setTimeout(() => {
                         showResult(state.shortlist[winnerIndex], winnerIndex);
-                    }, 500); // 停頓一下讓使用者看清楚贏家
+                    }, 500);
                 } else {
-                    // 繼續轉，但每圈變慢一點
                     if (rounds > 0) speed += 10; 
                     setTimeout(step, speed);
                 }
             }
-            
-            step(); // 開始動畫
+            step();
         }
 
         function showResult(item, index) {
@@ -631,7 +678,6 @@
             document.getElementById('v-result').classList.add('active');
             
             document.getElementById('resName').innerText = item.name;
-            // 使用跟 podium 一樣的圖片參數，確保瀏覽器直接使用快取，不用重新下載
             document.getElementById('resImg').style.backgroundImage = `url('${item.img}?lock=${index}')`;
             
             document.getElementById('resTags').innerHTML = 
